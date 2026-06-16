@@ -1,0 +1,59 @@
+.app-header {
+  align-items: center;
+  background: #ffffff;
+  border-bottom: 1px solid #d5ded8;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 1rem clamp(1rem, 4vw, 3rem);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.brand {
+  color: #173527;
+  font-size: 1.25rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.app-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.app-nav a {
+  border-radius: 8px;
+  color: #2f4739;
+  font-weight: 700;
+  min-height: 2.4rem;
+  padding: 0.55rem 0.8rem;
+  text-decoration: none;
+}
+
+.app-nav a:hover,
+.app-nav a.active-link {
+  background: #e2f1e8;
+  color: #123821;
+}
+
+.app-nav a:focus-visible,
+.brand:focus-visible {
+  outline: 3px solid #8ed6ff;
+  outline-offset: 2px;
+}
+
+.app-main {
+  margin: 0 auto;
+  max-width: 1180px;
+  padding: 1.5rem clamp(1rem, 4vw, 3rem) 3rem;
+}
+
+@media (max-width: 560px) {
+  .app-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

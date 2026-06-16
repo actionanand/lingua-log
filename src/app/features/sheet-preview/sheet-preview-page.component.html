@@ -1,0 +1,67 @@
+<section class="preview-shell" aria-labelledby="preview-title">
+  <header class="preview-header">
+    <div>
+      <p class="eyebrow">Sheet import</p>
+      <h1 id="preview-title">Preview pasted Google Sheet values</h1>
+    </div>
+  </header>
+
+  <div class="paste-panel">
+    <label class="field-label" for="sheet-paste">Paste one or more rows from Google Sheets</label>
+    <textarea
+      #sheetPaste
+      id="sheet-paste"
+      class="paste-area"
+      rows="8"
+      placeholder="Paste the header row and data rows, or paste only data rows in the recommended column order"
+      (input)="updateSheetText(sheetPaste.value)"
+    ></textarea>
+  </div>
+
+  @if (entries().length > 0) {
+    <section class="table-panel" aria-labelledby="parsed-title">
+      <div class="table-heading">
+        <h2 id="parsed-title">Parsed entries</h2>
+        <p>{{ entries().length }} row(s) ready to preview or edit.</p>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Source</th>
+              <th scope="col">Sentence</th>
+              <th scope="col">Translations</th>
+              <th scope="col">Resources</th>
+              <th scope="col">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (entry of entries(); track entry.entryId) {
+              <tr>
+                <td>
+                  {{ entry.sourceLanguage }}
+                  @if (entry.sourceLanguage === 'Other' && entry.sourceLanguageOther) {
+                    <span>({{ entry.sourceLanguageOther }})</span>
+                  }
+                </td>
+                <td>{{ entry.sourceText }}</td>
+                <td>{{ entry.translations.length }}</td>
+                <td>{{ entry.resources.length }}</td>
+                <td>
+                  <button type="button" class="secondary-button" (click)="selectEntry(entry)">
+                    Edit
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+
+  @if (selectedEntry(); as entry) {
+    <app-entry-editor heading="Edit pasted sheet entry" [initialEntry]="entry" />
+  }
+</section>
