@@ -1,0 +1,199 @@
+<section class="log-shell" aria-labelledby="log-title">
+  <header class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow">Language log</p>
+      <h1 id="log-title">Sentences across the languages you meet every day</h1>
+      <p class="hero-summary">
+        Browse saved sheet entries, compare source and translation languages, and copy corrected
+        rows back into Google Sheets.
+      </p>
+    </div>
+
+    <div class="globe-art" [innerHTML]="globeSvg" aria-hidden="true"></div>
+  </header>
+
+  <section class="controls" aria-label="Language log filters">
+    <div>
+      <label class="field-label" for="language-filter">Language</label>
+      <select
+        id="language-filter"
+        class="select-input"
+        [value]="selectedLanguage()"
+        (change)="updateLanguageFilter(languageFilter.value)"
+        #languageFilter
+      >
+        @for (language of availableLanguages(); track language) {
+          <option [value]="language">{{ language }}</option>
+        }
+      </select>
+    </div>
+
+    <fieldset class="scope-fieldset">
+      <legend>Show as</legend>
+      <div class="scope-options">
+        <button
+          type="button"
+          class="scope-button"
+          [class.active]="selectedScope() === 'all'"
+          (click)="updateScope('all')"
+        >
+          All
+        </button>
+        <button
+          type="button"
+          class="scope-button"
+          [class.active]="selectedScope() === 'source'"
+          (click)="updateScope('source')"
+        >
+          Source
+        </button>
+        <button
+          type="button"
+          class="scope-button"
+          [class.active]="selectedScope() === 'translation'"
+          (click)="updateScope('translation')"
+        >
+          Translation
+        </button>
+      </div>
+    </fieldset>
+
+    <button type="button" class="secondary-button reload-button" (click)="reload()">Reload</button>
+  </section>
+
+  @if (rowsResource.isLoading()) {
+    <section class="loader" aria-live="polite" aria-label="Loading language log">
+      <span></span>
+      <p>Loading language log from Google Sheets...</p>
+    </section>
+  } @else if (rowsResource.error(); as error) {
+    <section class="empty-state" aria-live="polite">
+      <h2>Could not load entries</h2>
+      <p>{{ errorMessage(error) }}</p>
+      <button type="button" class="primary-button" (click)="reload()">Try again</button>
+    </section>
+  } @else if (filteredRows().length === 0) {
+    <section class="empty-state">
+      <h2>No visible entries</h2>
+      <p>Protected rows are hidden until login is added. Try another language or scope filter.</p>
+    </section>
+  } @else {
+    <section class="result-summary" aria-live="polite">
+      <p>
+        Showing {{ pagedRows().length }} of {{ filteredRows().length }} visible entries. Protected
+        rows are hidden.
+      </p>
+    </section>
+
+    <section class="entry-list" aria-label="Language log entries">
+      @for (row of pagedRows(); track row.entry.entryId) {
+        <article class="entry-card">
+          <header class="entry-card-header">
+            <div>
+              <p class="row-meta">Google Sheet row {{ row.rowNumber }}</p>
+              <h2>{{ row.entry.sourceText }}</h2>
+              @if (row.entry.sourceTransliteration) {
+                <p class="transliteration">{{ row.entry.sourceTransliteration }}</p>
+              }
+            </div>
+
+            <button type="button" class="edit-button" (click)="openEdit(row)">Edit</button>
+          </header>
+
+          <div class="language-grid">
+            @for (block of visibleLanguageBlocks(row.entry); track block.key) {
+              <section
+                class="language-block"
+                [attr.aria-label]="block.role + ' in ' + block.language"
+              >
+                <div class="language-block-header">
+                  <span class="language-name">{{ block.language }}</span>
+                  <span class="role-pill">{{ block.role }}</span>
+                </div>
+                <p class="language-text">{{ block.text }}</p>
+                @if (block.transliteration) {
+                  <p class="language-transliteration">{{ block.transliteration }}</p>
+                }
+              </section>
+            }
+          </div>
+
+          @if (row.entry.explanationHtml) {
+            <section class="explanation" aria-label="Explanation">
+              <h3>Explanation</h3>
+              <div [innerHTML]="row.entry.explanationHtml"></div>
+            </section>
+          }
+
+          @if (row.entry.resources.length > 0) {
+            <section class="resources" aria-label="Resources">
+              <h3>Resources</h3>
+              <ul>
+                @for (resource of row.entry.resources; track resource) {
+                  <li>{{ resource }}</li>
+                }
+              </ul>
+            </section>
+          }
+
+          <footer class="entry-footer">
+            <span>Saved {{ formatDate(row.entry.updatedAt || row.entry.createdAt) }}</span>
+          </footer>
+        </article>
+      }
+    </section>
+
+    <nav class="pagination" aria-label="Language log pagination">
+      <button
+        type="button"
+        class="secondary-button"
+        (click)="previousPage()"
+        [disabled]="pageIndex() === 0"
+      >
+        Previous
+      </button>
+
+      <span>Page {{ pageIndex() + 1 }} of {{ totalPages() }}</span>
+
+      <button
+        type="button"
+        class="secondary-button"
+        (click)="nextPage()"
+        [disabled]="pageIndex() + 1 >= totalPages()"
+      >
+        Next
+      </button>
+
+      <label class="page-size-label" for="page-size">Rows</label>
+      <select
+        id="page-size"
+        class="select-input page-size-select"
+        [value]="pageSize()"
+        (change)="updatePageSize(pageSizeSelect.value)"
+        #pageSizeSelect
+      >
+        @for (size of pageSizeOptions; track size) {
+          <option [value]="size">{{ size }}</option>
+        }
+      </select>
+    </nav>
+  }
+</section>
+
+@if (editingRow(); as row) {
+  <section class="modal-backdrop" role="presentation">
+    <div class="edit-modal" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
+      <header class="edit-modal-header">
+        <div>
+          <p class="row-meta">Google Sheet row {{ row.rowNumber }}</p>
+          <h2 id="edit-modal-title">Edit and copy replacement row</h2>
+        </div>
+        <button type="button" class="close-button" (click)="closeEdit()" aria-label="Close editor">
+          Close
+        </button>
+      </header>
+
+      <app-entry-editor [heading]="'Edit row ' + row.rowNumber" [initialEntry]="row.entry" />
+    </div>
+  </section>
+}
