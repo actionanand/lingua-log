@@ -13,9 +13,13 @@
       id="sheet-paste"
       class="paste-area"
       rows="8"
-      placeholder="Paste a single Google Sheet row without the header, or paste multiple rows with the header row included."
+      placeholder="Paste one single row without header, including rows copied from inside ``` code fences. For multiple rows, paste the header row also."
       (input)="updateSheetText(sheetPaste.value)"
     ></textarea>
+
+    @if (parseMessage()) {
+      <p class="parse-message" aria-live="polite">{{ parseMessage() }}</p>
+    }
   </div>
 
   @if (entries().length > 0) {

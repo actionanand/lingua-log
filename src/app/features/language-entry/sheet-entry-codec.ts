@@ -130,24 +130,30 @@ export function parseSheetText(text: string): LinguaLogEntry[] {
   }
 
   const firstRow = rows[0] ?? [];
-  const hasHeader = firstRow.some((cell) => sheetColumns.includes(cell.trim() as SheetColumn));
+  const hasHeader = isHeaderRow(firstRow);
 
-  if (!hasHeader && rows.length > 1) {
-    return [];
+  if (!hasHeader) {
+    const singleRow = findSingleHeaderlessRecord(text, rows);
+    return singleRow ? [entryFromRow(singleRow, inferHeadersForRow(singleRow))] : [];
   }
 
-  const headers = hasHeader ? firstRow.map((cell) => cell.trim()) : null;
-  const dataRows = hasHeader ? rows.slice(1) : rows;
+  const headers = firstRow.map((cell) => cell.trim());
+  return rows.slice(1).map((row) => entryFromRow(row, headers));
+}
 
-  return dataRows.map((row) => entryFromRow(row, headers ?? inferHeadersForRow(row)));
+function isHeaderRow(row: string[]): boolean {
+  return (
+    row[0]?.trim() === 'EntryId' && row[1]?.trim() === 'CreatedAt' && row[2]?.trim() === 'UpdatedAt'
+  );
 }
 
 function entryFromRow(cells: string[], headers: readonly string[]): LinguaLogEntry {
   const row = createBlankSheetRow();
+  const normalizedCells = normalizeCellsForHeaders(cells, headers);
 
   headers.forEach((header, index) => {
     if (sheetColumns.includes(header as SheetColumn)) {
-      row[header as SheetColumn] = cells[index] ?? '';
+      row[header as SheetColumn] = normalizedCells[index] ?? '';
     }
   });
 
@@ -178,12 +184,92 @@ function entryFromRow(cells: string[], headers: readonly string[]): LinguaLogEnt
   };
 }
 
+function findSingleHeaderlessRecord(text: string, rows: string[][]): string[] | null {
+  if (rows.length === 1 && looksLikeHeaderlessRecord(rows[0] ?? [])) {
+    return rows[0] ?? [];
+  }
+
+  const flattenedRows = parseTsv(text.replace(/\r?\n/g, '\t')).filter((row) =>
+    row.some((cell) => cell.trim().length > 0),
+  );
+  const flattenedRow = flattenedRows[0] ?? [];
+
+  if (looksLikeHeaderlessRecord(flattenedRow)) {
+    return flattenedRow;
+  }
+
+  return foldSingleHeaderlessRecord(rows);
+}
+
 function inferHeadersForRow(row: string[]): readonly string[] {
-  if (row.length === legacySheetColumns.length) {
+  if (isProtectedValue(row[3]) || languageOptions.includes(row[4] as LanguageOption)) {
+    return sheetColumns;
+  }
+
+  if (
+    languageOptions.includes(row[3] as LanguageOption) ||
+    row.length === legacySheetColumns.length
+  ) {
     return legacySheetColumns;
   }
 
   return sheetColumns;
+}
+
+function normalizeCellsForHeaders(cells: string[], headers: readonly string[]): string[] {
+  if (cells.length <= headers.length) {
+    return cells;
+  }
+
+  const explanationIndex = headers.indexOf('ExplanationHtml');
+
+  if (explanationIndex < 0 || cells.length <= explanationIndex) {
+    return cells;
+  }
+
+  return [...cells.slice(0, explanationIndex), cells.slice(explanationIndex).join('\n')];
+}
+
+function foldSingleHeaderlessRecord(rows: string[][]): string[] | null {
+  const firstRow = rows[0] ?? [];
+
+  if (!looksLikeHeaderlessRecord(firstRow)) {
+    return null;
+  }
+
+  const foldedRow = [...firstRow];
+
+  for (const row of rows.slice(1)) {
+    if (looksLikeHeaderlessRecord(row)) {
+      return null;
+    }
+
+    const continuationText = row.join('\t');
+    const lastCellIndex = Math.max(foldedRow.length - 1, 0);
+    foldedRow[lastCellIndex] = `${foldedRow[lastCellIndex]}\n${continuationText}`;
+  }
+
+  return foldedRow;
+}
+
+function looksLikeHeaderlessRecord(row: string[]): boolean {
+  return (
+    row[0]?.trim().length > 0 &&
+    isIsoDate(row[1]) &&
+    isIsoDate(row[2]) &&
+    ((isProtectedValue(row[3]) && languageOptions.includes(row[4] as LanguageOption)) ||
+      languageOptions.includes(row[3] as LanguageOption))
+  );
+}
+
+function isProtectedValue(value: string | undefined): boolean {
+  const normalizedValue = value?.trim().toLowerCase();
+
+  return normalizedValue === 'yes' || normalizedValue === 'no';
+}
+
+function isIsoDate(value: string | undefined): boolean {
+  return Boolean(value?.trim().match(/^\d{4}-\d{2}-\d{2}T/));
 }
 
 function createBlankSheetRow(): SheetRow {
@@ -236,14 +322,24 @@ function parseTsv(text: string): string[][] {
     const char = text[index];
     const nextChar = text[index + 1];
 
-    if (char === '"' && isQuoted && nextChar === '"') {
-      cell += '"';
-      index += 1;
-      continue;
-    }
-
     if (char === '"') {
-      isQuoted = !isQuoted;
+      if (isQuoted && nextChar === '"') {
+        cell += '"';
+        index += 1;
+        continue;
+      }
+
+      if (isQuoted) {
+        isQuoted = false;
+        continue;
+      }
+
+      if (cell.length === 0) {
+        isQuoted = true;
+        continue;
+      }
+
+      cell += char;
       continue;
     }
 
