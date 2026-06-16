@@ -131,6 +131,11 @@ export function parseSheetText(text: string): LinguaLogEntry[] {
 
   const firstRow = rows[0] ?? [];
   const hasHeader = firstRow.some((cell) => sheetColumns.includes(cell.trim() as SheetColumn));
+
+  if (!hasHeader && rows.length > 1) {
+    return [];
+  }
+
   const headers = hasHeader ? firstRow.map((cell) => cell.trim()) : null;
   const dataRows = hasHeader ? rows.slice(1) : rows;
 

@@ -6,11 +6,20 @@
     </div>
 
     <div class="header-actions">
-      <label class="toggle-control">
+      <button
+        type="button"
+        class="switch-control"
+        [class.is-on]="form.controls.isProtected.value"
+        role="switch"
+        [attr.aria-checked]="form.controls.isProtected.value"
+        (click)="toggleProtected()"
+      >
         <span>Protected</span>
-        <input type="checkbox" role="switch" formControlName="isProtected" />
+        <span class="switch-track" aria-hidden="true">
+          <span class="switch-thumb"></span>
+        </span>
         <strong>{{ form.controls.isProtected.value ? 'Yes' : 'No' }}</strong>
-      </label>
+      </button>
 
       <div class="copy-actions" aria-label="Google Sheet copy actions">
         <button type="button" class="secondary-button" (click)="copyHeader()">Copy header</button>
@@ -194,6 +203,36 @@
       >
         List
       </button>
+
+      <span class="toolbar-divider" aria-hidden="true"></span>
+
+      <div class="swatch-group" role="group" aria-label="Text color">
+        @for (color of textColorOptions; track color.value) {
+          <button
+            type="button"
+            class="swatch-button text-swatch"
+            [style.color]="color.value"
+            (mousedown)="keepEditorSelection($event)"
+            (click)="colorExplanation('foreColor', color.value)"
+            [attr.aria-label]="color.label"
+          >
+            A
+          </button>
+        }
+      </div>
+
+      <div class="swatch-group" role="group" aria-label="Background color">
+        @for (color of backgroundColorOptions; track color.value) {
+          <button
+            type="button"
+            class="swatch-button"
+            [style.background-color]="color.value"
+            (mousedown)="keepEditorSelection($event)"
+            (click)="colorExplanation('hiliteColor', color.value)"
+            [attr.aria-label]="color.label"
+          ></button>
+        }
+      </div>
     </div>
 
     <div
