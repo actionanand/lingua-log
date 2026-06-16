@@ -134,11 +134,11 @@ export function parseSheetText(text: string): LinguaLogEntry[] {
 
   if (!hasHeader) {
     const singleRow = findSingleHeaderlessRecord(text, rows);
-    return singleRow ? [entryFromRow(singleRow, inferHeadersForRow(singleRow))] : [];
+    return singleRow ? [entryFromSheetCells(singleRow, inferHeadersForRow(singleRow))] : [];
   }
 
   const headers = firstRow.map((cell) => cell.trim());
-  return rows.slice(1).map((row) => entryFromRow(row, headers));
+  return rows.slice(1).map((row) => entryFromSheetCells(row, headers));
 }
 
 function isHeaderRow(row: string[]): boolean {
@@ -147,7 +147,10 @@ function isHeaderRow(row: string[]): boolean {
   );
 }
 
-function entryFromRow(cells: string[], headers: readonly string[]): LinguaLogEntry {
+export function entryFromSheetCells(
+  cells: readonly string[],
+  headers: readonly string[] = sheetColumns,
+): LinguaLogEntry {
   const row = createBlankSheetRow();
   const normalizedCells = normalizeCellsForHeaders(cells, headers);
 
@@ -216,7 +219,10 @@ function inferHeadersForRow(row: string[]): readonly string[] {
   return sheetColumns;
 }
 
-function normalizeCellsForHeaders(cells: string[], headers: readonly string[]): string[] {
+function normalizeCellsForHeaders(
+  cells: readonly string[],
+  headers: readonly string[],
+): string[] | readonly string[] {
   if (cells.length <= headers.length) {
     return cells;
   }

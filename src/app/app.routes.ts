@@ -4,7 +4,14 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'converter',
+    redirectTo: 'logs',
+  },
+  {
+    path: 'logs',
+    loadComponent: () =>
+      import('./features/language-log/language-log-page.component').then(
+        (m) => m.LanguageLogPageComponent,
+      ),
   },
   {
     path: 'converter',
