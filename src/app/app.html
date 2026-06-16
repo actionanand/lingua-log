@@ -1,3 +1,12 @@
-<div style="text-align: center; color: green; font-size: 24px">{{ title() }}</div>
+<header class="app-header">
+  <a class="brand" routerLink="/converter" aria-label="LinguaLog converter home">{{ title() }}</a>
 
-<router-outlet />
+  <nav class="app-nav" aria-label="Primary navigation">
+    <a routerLink="/converter" routerLinkActive="active-link">Converter</a>
+    <a routerLink="/sheet-preview" routerLinkActive="active-link">Sheet Preview</a>
+  </nav>
+</header>
+
+<main class="app-main">
+  <router-outlet />
+</main>

@@ -1,0 +1,239 @@
+<form class="entry-editor" [formGroup]="form">
+  <header class="editor-header">
+    <div>
+      <p class="eyebrow">Sentence converter</p>
+      <h1>{{ heading() }}</h1>
+    </div>
+
+    <div class="copy-actions" aria-label="Google Sheet copy actions">
+      <button type="button" class="secondary-button" (click)="copyHeader()">Copy header</button>
+      <button type="button" class="secondary-button" (click)="copyHeaderAndRow()">
+        Copy header + row
+      </button>
+      <button type="button" class="primary-button" (click)="copyRow()">Copy row</button>
+    </div>
+  </header>
+
+  @if (copyStatus()) {
+    <p class="status-message" aria-live="polite">{{ copyStatus() }}</p>
+  }
+
+  <section class="form-section" aria-labelledby="source-section-title">
+    <div class="section-heading">
+      <h2 id="source-section-title">Original sentence</h2>
+      <p>
+        Choose the language you first heard or read, then keep any pronunciation hint separately.
+      </p>
+    </div>
+
+    <label class="field-label" for="source-text">Sentence</label>
+    <textarea
+      id="source-text"
+      class="text-area large"
+      formControlName="sourceText"
+      rows="4"
+      placeholder="Paste or type the sentence here"
+    ></textarea>
+
+    <fieldset class="language-fieldset">
+      <legend>Current language</legend>
+      <div class="language-options">
+        @for (language of languages; track language) {
+          <label class="choice-pill">
+            <input
+              type="radio"
+              formControlName="sourceLanguage"
+              [value]="language"
+              (change)="setSourceLanguage(language)"
+            />
+            <span>{{ language }}</span>
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    @if (sourceLanguage() === 'Other') {
+      <label class="field-label" for="source-other-language">Temporary language name</label>
+      <input
+        id="source-other-language"
+        class="text-input"
+        type="text"
+        formControlName="sourceLanguageOther"
+        placeholder="Example: Marathi"
+      />
+    }
+
+    <label class="field-label" for="source-transliteration">Transliteration</label>
+    <input
+      id="source-transliteration"
+      class="text-input"
+      type="text"
+      formControlName="sourceTransliteration"
+      placeholder="Optional reading aid for the original sentence"
+    />
+  </section>
+
+  <section class="form-section" aria-labelledby="translation-section-title">
+    <div class="section-heading with-action">
+      <div>
+        <h2 id="translation-section-title">Translations</h2>
+        <p>Add one row for each language version you want to keep.</p>
+      </div>
+      <button type="button" class="secondary-button" (click)="addTranslation()">
+        Add language
+      </button>
+    </div>
+
+    <div class="translation-list" formArrayName="translations">
+      @for (translation of translations.controls; track translation; let index = $index) {
+        <div
+          class="translation-row"
+          [class.has-other-language]="translation.controls.language.value === 'Other'"
+          [formGroupName]="index"
+        >
+          <div>
+            <label class="field-label" [for]="'translation-language-' + index">Language</label>
+            <select
+              [id]="'translation-language-' + index"
+              class="select-input"
+              formControlName="language"
+            >
+              @for (language of availableTranslationLanguages(); track language) {
+                <option [value]="language">{{ language }}</option>
+              }
+            </select>
+          </div>
+
+          @if (translation.controls.language.value === 'Other') {
+            <div>
+              <label class="field-label" [for]="'translation-other-language-' + index"
+                >Language name</label
+              >
+              <input
+                [id]="'translation-other-language-' + index"
+                class="text-input"
+                type="text"
+                formControlName="languageOther"
+                placeholder="Temporary language"
+              />
+            </div>
+          }
+
+          <div class="translation-text">
+            <label class="field-label" [for]="'translation-text-' + index">Translation</label>
+            <input
+              [id]="'translation-text-' + index"
+              class="text-input"
+              type="text"
+              formControlName="text"
+              placeholder="Translated sentence"
+            />
+          </div>
+
+          <button
+            type="button"
+            class="icon-button"
+            (click)="removeTranslation(index)"
+            [attr.aria-label]="'Remove translation row ' + (index + 1)"
+          >
+            Remove
+          </button>
+        </div>
+      }
+    </div>
+  </section>
+
+  <section class="form-section" aria-labelledby="explanation-section-title">
+    <div class="section-heading">
+      <h2 id="explanation-section-title">Explanation</h2>
+      <p>Use this for word notes, grammar, nuance, context, or memory hooks.</p>
+    </div>
+
+    <div class="rich-toolbar" role="toolbar" aria-label="Explanation formatting">
+      <button
+        type="button"
+        class="format-button"
+        (click)="formatExplanation('bold')"
+        aria-label="Bold"
+      >
+        B
+      </button>
+      <button
+        type="button"
+        class="format-button italic"
+        (click)="formatExplanation('italic')"
+        aria-label="Italic"
+      >
+        I
+      </button>
+      <button
+        type="button"
+        class="format-button strike"
+        (click)="formatExplanation('strikeThrough')"
+        aria-label="Strikethrough"
+      >
+        S
+      </button>
+      <button
+        type="button"
+        class="format-button"
+        (click)="formatExplanation('insertUnorderedList')"
+        aria-label="Unordered list"
+      >
+        List
+      </button>
+    </div>
+
+    <div
+      #explanationEditor
+      class="rich-editor"
+      contenteditable="true"
+      role="textbox"
+      aria-multiline="true"
+      aria-label="Explanation with formatting"
+      data-placeholder="Write explanation, word notes, grammar, or usage context"
+      (input)="syncExplanation()"
+      (blur)="syncExplanation()"
+    ></div>
+  </section>
+
+  <section class="form-section" aria-labelledby="resource-section-title">
+    <div class="section-heading with-action">
+      <div>
+        <h2 id="resource-section-title">Resources</h2>
+        <p>Add up to two links, titles, people, shows, or posts where the sentence came from.</p>
+      </div>
+      <button
+        type="button"
+        class="secondary-button"
+        (click)="addResource()"
+        [disabled]="resources.length >= maxResources"
+      >
+        Add resource
+      </button>
+    </div>
+
+    <div class="resource-list" formArrayName="resources">
+      @for (resource of resources.controls; track resource; let index = $index) {
+        <div class="resource-row">
+          <label class="field-label" [for]="'resource-' + index">Resource {{ index + 1 }}</label>
+          <input
+            [id]="'resource-' + index"
+            class="text-input"
+            type="text"
+            [formControlName]="index"
+            placeholder="Optional source"
+          />
+          <button
+            type="button"
+            class="icon-button"
+            (click)="removeResource(index)"
+            [attr.aria-label]="'Remove resource ' + (index + 1)"
+          >
+            Remove
+          </button>
+        </div>
+      }
+    </div>
+  </section>
+</form>
