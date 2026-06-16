@@ -6,6 +6,7 @@ import {
   resource,
   signal,
 } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
 import { GLOBE } from '../../../data/images/svg/globe';
 import { EntryEditorComponent } from '../language-entry/entry-editor.component';
 import {
@@ -14,6 +15,7 @@ import {
   languageOptions,
 } from '../language-entry/sheet-entry-codec';
 import { LanguageLogSheetRow, LanguageLogSheetService } from './language-log-sheet.service';
+import { SafeExplanationHtmlPipe } from './safe-explanation-html.pipe';
 
 type LanguageFilter = string;
 type LanguageScope = 'all' | 'source' | 'translation';
@@ -28,15 +30,16 @@ interface LanguageBlock {
 
 @Component({
   selector: 'app-language-log-page',
-  imports: [EntryEditorComponent],
+  imports: [EntryEditorComponent, SafeExplanationHtmlPipe],
   templateUrl: './language-log-page.component.html',
   styleUrl: './language-log-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LanguageLogPageComponent {
   private readonly sheetService = inject(LanguageLogSheetService);
+  private readonly sanitizer = inject(DomSanitizer);
 
-  protected readonly globeSvg = GLOBE;
+  protected readonly globeSvg = this.sanitizer.bypassSecurityTrustHtml(GLOBE);
   protected readonly pageSizeOptions = [5, 10, 20, 50] as const;
   protected readonly selectedLanguage = signal<LanguageFilter>('All');
   protected readonly selectedScope = signal<LanguageScope>('all');
@@ -107,6 +110,24 @@ export class LanguageLogPageComponent {
 
   protected closeEdit(): void {
     this.editingRow.set(null);
+  }
+
+  protected resourceHref(resource: string): string {
+    const trimmedResource = resource.trim();
+
+    if (!trimmedResource) {
+      return '';
+    }
+
+    if (/^https?:\/\//i.test(trimmedResource)) {
+      return trimmedResource;
+    }
+
+    if (/^[^\s]+\.[^\s]+/.test(trimmedResource)) {
+      return `https://${trimmedResource}`;
+    }
+
+    return '';
   }
 
   protected visibleLanguageBlocks(entry: LinguaLogEntry): LanguageBlock[] {
