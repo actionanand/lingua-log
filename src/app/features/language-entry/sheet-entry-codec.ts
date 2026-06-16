@@ -16,6 +16,7 @@ export const sheetColumns = [
   'EntryId',
   'CreatedAt',
   'UpdatedAt',
+  'Protected',
   'SourceLanguage',
   'SourceOtherLanguage',
   'SourceText',
@@ -36,6 +37,11 @@ export const sheetColumns = [
 ] as const;
 
 export type SheetColumn = (typeof sheetColumns)[number];
+type LegacySheetColumn = Exclude<SheetColumn, 'Protected'>;
+
+const legacySheetColumns = sheetColumns.filter(
+  (column): column is LegacySheetColumn => column !== 'Protected',
+);
 
 export interface TranslationEntry {
   language: LanguageOption;
@@ -47,6 +53,7 @@ export interface LinguaLogEntry {
   entryId: string;
   createdAt: string;
   updatedAt: string;
+  isProtected: boolean;
   sourceLanguage: LanguageOption;
   sourceLanguageOther: string;
   sourceText: string;
@@ -65,6 +72,7 @@ export function createEmptyEntry(): LinguaLogEntry {
     entryId: createEntryId(),
     createdAt,
     updatedAt: createdAt,
+    isProtected: false,
     sourceLanguage: 'Tamil',
     sourceLanguageOther: '',
     sourceText: '',
@@ -96,6 +104,7 @@ export function toSheetCells(entry: LinguaLogEntry): string[] {
   row.EntryId = entry.entryId;
   row.CreatedAt = entry.createdAt;
   row.UpdatedAt = new Date().toISOString();
+  row.Protected = entry.isProtected ? 'Yes' : 'No';
   row.SourceLanguage = entry.sourceLanguage;
   row.SourceOtherLanguage = entry.sourceLanguage === 'Other' ? entry.sourceLanguageOther : '';
   row.SourceText = entry.sourceText;
@@ -122,13 +131,13 @@ export function parseSheetText(text: string): LinguaLogEntry[] {
 
   const firstRow = rows[0] ?? [];
   const hasHeader = firstRow.some((cell) => sheetColumns.includes(cell.trim() as SheetColumn));
-  const headers = hasHeader ? firstRow.map((cell) => cell.trim()) : [...sheetColumns];
+  const headers = hasHeader ? firstRow.map((cell) => cell.trim()) : null;
   const dataRows = hasHeader ? rows.slice(1) : rows;
 
-  return dataRows.map((row) => entryFromRow(row, headers));
+  return dataRows.map((row) => entryFromRow(row, headers ?? inferHeadersForRow(row)));
 }
 
-function entryFromRow(cells: string[], headers: string[]): LinguaLogEntry {
+function entryFromRow(cells: string[], headers: readonly string[]): LinguaLogEntry {
   const row = createBlankSheetRow();
 
   headers.forEach((header, index) => {
@@ -152,6 +161,7 @@ function entryFromRow(cells: string[], headers: string[]): LinguaLogEntry {
     entryId: row.EntryId || createEntryId(),
     createdAt: row.CreatedAt || new Date().toISOString(),
     updatedAt: row.UpdatedAt || new Date().toISOString(),
+    isProtected: row.Protected.trim().toLowerCase() === 'yes',
     sourceLanguage,
     sourceLanguageOther:
       sourceLanguage === 'Other' ? row.SourceOtherLanguage || row.OtherLanguage : '',
@@ -161,6 +171,14 @@ function entryFromRow(cells: string[], headers: string[]): LinguaLogEntry {
     explanationHtml: row.ExplanationHtml,
     resources: [row.Resource1, row.Resource2].filter((resource) => resource.trim().length > 0),
   };
+}
+
+function inferHeadersForRow(row: string[]): readonly string[] {
+  if (row.length === legacySheetColumns.length) {
+    return legacySheetColumns;
+  }
+
+  return sheetColumns;
 }
 
 function createBlankSheetRow(): SheetRow {

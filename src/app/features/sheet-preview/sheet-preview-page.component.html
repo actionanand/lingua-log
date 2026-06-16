@@ -30,6 +30,7 @@
           <thead>
             <tr>
               <th scope="col">Source</th>
+              <th scope="col">Protected</th>
               <th scope="col">Sentence</th>
               <th scope="col">Translations</th>
               <th scope="col">Resources</th>
@@ -45,6 +46,7 @@
                     <span>({{ entry.sourceLanguageOther }})</span>
                   }
                 </td>
+                <td>{{ entry.isProtected ? 'Yes' : 'No' }}</td>
                 <td>{{ entry.sourceText }}</td>
                 <td>{{ entry.translations.length }}</td>
                 <td>{{ entry.resources.length }}</td>

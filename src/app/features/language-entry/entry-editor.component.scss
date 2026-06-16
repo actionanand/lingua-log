@@ -64,12 +64,42 @@ h2 {
   padding: 1rem;
 }
 
+.header-actions,
 .copy-actions,
 .language-options,
 .rich-toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+.header-actions {
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.toggle-control {
+  align-items: center;
+  background: #f7faf8;
+  border: 1px solid #cbd8d0;
+  border-radius: 999px;
+  color: #20342a;
+  display: inline-flex;
+  font-weight: 700;
+  gap: 0.6rem;
+  min-height: 2.55rem;
+  padding: 0.35rem 0.75rem;
+}
+
+.toggle-control input {
+  accent-color: #23543b;
+  height: 1.1rem;
+  width: 1.1rem;
+}
+
+.toggle-control:focus-within {
+  outline: 3px solid #8ed6ff;
+  outline-offset: 2px;
 }
 
 .field-label,
@@ -247,6 +277,11 @@ button:focus-visible {
 @media (max-width: 760px) {
   .editor-header,
   .section-heading.with-action {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .header-actions {
     align-items: stretch;
     flex-direction: column;
   }

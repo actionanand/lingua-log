@@ -5,12 +5,20 @@
       <h1>{{ heading() }}</h1>
     </div>
 
-    <div class="copy-actions" aria-label="Google Sheet copy actions">
-      <button type="button" class="secondary-button" (click)="copyHeader()">Copy header</button>
-      <button type="button" class="secondary-button" (click)="copyHeaderAndRow()">
-        Copy header + row
-      </button>
-      <button type="button" class="primary-button" (click)="copyRow()">Copy row</button>
+    <div class="header-actions">
+      <label class="toggle-control">
+        <span>Protected</span>
+        <input type="checkbox" role="switch" formControlName="isProtected" />
+        <strong>{{ form.controls.isProtected.value ? 'Yes' : 'No' }}</strong>
+      </label>
+
+      <div class="copy-actions" aria-label="Google Sheet copy actions">
+        <button type="button" class="secondary-button" (click)="copyHeader()">Copy header</button>
+        <button type="button" class="secondary-button" (click)="copyHeaderAndRow()">
+          Copy header + row
+        </button>
+        <button type="button" class="primary-button" (click)="copyRow()">Copy row</button>
+      </div>
     </div>
   </header>
 
@@ -153,6 +161,7 @@
       <button
         type="button"
         class="format-button"
+        (mousedown)="keepEditorSelection($event)"
         (click)="formatExplanation('bold')"
         aria-label="Bold"
       >
@@ -161,6 +170,7 @@
       <button
         type="button"
         class="format-button italic"
+        (mousedown)="keepEditorSelection($event)"
         (click)="formatExplanation('italic')"
         aria-label="Italic"
       >
@@ -169,6 +179,7 @@
       <button
         type="button"
         class="format-button strike"
+        (mousedown)="keepEditorSelection($event)"
         (click)="formatExplanation('strikeThrough')"
         aria-label="Strikethrough"
       >
@@ -177,6 +188,7 @@
       <button
         type="button"
         class="format-button"
+        (mousedown)="keepEditorSelection($event)"
         (click)="formatExplanation('insertUnorderedList')"
         aria-label="Unordered list"
       >
@@ -192,7 +204,7 @@
       aria-multiline="true"
       aria-label="Explanation with formatting"
       data-placeholder="Write explanation, word notes, grammar, or usage context"
-      (input)="syncExplanation()"
+      (input)="updateExplanationValue()"
       (blur)="syncExplanation()"
     ></div>
   </section>

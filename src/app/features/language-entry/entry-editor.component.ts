@@ -33,6 +33,7 @@ type TranslationForm = FormGroup<{
 }>;
 
 type EntryForm = FormGroup<{
+  isProtected: FormControl<boolean>;
   sourceLanguage: FormControl<LanguageOption>;
   sourceLanguageOther: FormControl<string>;
   sourceText: FormControl<string>;
@@ -70,6 +71,7 @@ export class EntryEditorComponent {
   private readonly createdAt = signal(this.startingEntry.createdAt);
 
   protected readonly form: EntryForm = this.formBuilder.nonNullable.group({
+    isProtected: this.startingEntry.isProtected,
     sourceLanguage: this.startingEntry.sourceLanguage,
     sourceLanguageOther: this.startingEntry.sourceLanguageOther,
     sourceText: this.startingEntry.sourceText,
@@ -154,8 +156,23 @@ export class EntryEditorComponent {
   protected formatExplanation(command: RichTextCommand): void {
     const editor = this.explanationEditor();
     editor?.nativeElement.focus();
-    document.execCommand(command);
-    this.syncExplanation();
+    document.execCommand('styleWithCSS', false, 'false');
+    document.execCommand(command, false);
+    this.updateExplanationValue();
+  }
+
+  protected keepEditorSelection(event: MouseEvent): void {
+    event.preventDefault();
+  }
+
+  protected updateExplanationValue(): void {
+    const editor = this.explanationEditor();
+
+    if (!editor) {
+      return;
+    }
+
+    this.form.controls.explanationHtml.setValue(editor.nativeElement.innerHTML);
   }
 
   protected syncExplanation(): void {
@@ -225,6 +242,7 @@ export class EntryEditorComponent {
       sourceText: entry.sourceText,
       sourceTransliteration: entry.sourceTransliteration,
       explanationHtml: entry.explanationHtml,
+      isProtected: entry.isProtected,
     });
 
     const editor = this.explanationEditor();
@@ -240,6 +258,7 @@ export class EntryEditorComponent {
       entryId: this.entryId(),
       createdAt: this.createdAt(),
       updatedAt: new Date().toISOString(),
+      isProtected: rawValue.isProtected,
       sourceLanguage: rawValue.sourceLanguage,
       sourceLanguageOther: rawValue.sourceLanguageOther.trim(),
       sourceText: rawValue.sourceText.trim(),
