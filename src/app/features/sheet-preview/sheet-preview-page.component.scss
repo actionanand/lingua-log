@@ -75,6 +75,15 @@ button:focus-visible {
   outline-offset: 2px;
 }
 
+.parse-message {
+  background: #fff7df;
+  border: 1px solid #e3c96d;
+  border-radius: 8px;
+  color: #5a4300;
+  margin: 0.75rem 0 0;
+  padding: 0.75rem;
+}
+
 .table-wrap {
   overflow-x: auto;
 }

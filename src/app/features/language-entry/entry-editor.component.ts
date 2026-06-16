@@ -33,6 +33,7 @@ type TranslationForm = FormGroup<{
 }>;
 
 type EntryForm = FormGroup<{
+  isProtected: FormControl<boolean>;
   sourceLanguage: FormControl<LanguageOption>;
   sourceLanguageOther: FormControl<string>;
   sourceText: FormControl<string>;
@@ -43,6 +44,38 @@ type EntryForm = FormGroup<{
 }>;
 
 type RichTextCommand = 'bold' | 'italic' | 'strikeThrough' | 'insertUnorderedList';
+type RichTextColorCommand = 'foreColor' | 'hiliteColor';
+
+const textColorOptions = [
+  { label: 'Green text', value: 'green' },
+  { label: 'Red text', value: 'red' },
+  { label: 'Blue text', value: 'blue' },
+  { label: 'Purple text', value: 'purple' },
+  { label: 'Orange text', value: 'darkorange' },
+] as const;
+
+const backgroundColorOptions = [
+  { label: 'Green background', value: 'lightgreen' },
+  { label: 'Red background', value: 'lightpink' },
+  { label: 'Yellow background', value: 'yellow' },
+  { label: 'Blue background', value: 'lightblue' },
+  { label: 'Gray background', value: 'lightgray' },
+] as const;
+
+const allowedTextColors = textColorOptions.map((color) => color.value);
+const allowedBackgroundColors = backgroundColorOptions.map((color) => color.value);
+const colorAliases: Record<string, string> = {
+  'rgb(0, 0, 255)': 'blue',
+  'rgb(0, 128, 0)': 'green',
+  'rgb(128, 0, 128)': 'purple',
+  'rgb(144, 238, 144)': 'lightgreen',
+  'rgb(173, 216, 230)': 'lightblue',
+  'rgb(211, 211, 211)': 'lightgray',
+  'rgb(255, 0, 0)': 'red',
+  'rgb(255, 140, 0)': 'darkorange',
+  'rgb(255, 182, 193)': 'lightpink',
+  'rgb(255, 255, 0)': 'yellow',
+};
 
 @Component({
   selector: 'app-entry-editor',
@@ -56,6 +89,8 @@ export class EntryEditorComponent {
   readonly heading = input('Create converter entry');
 
   protected readonly languages = languageOptions;
+  protected readonly textColorOptions = textColorOptions;
+  protected readonly backgroundColorOptions = backgroundColorOptions;
   protected readonly maxResources = 2;
   protected readonly copyStatus = signal('');
   protected readonly sourceLanguage = signal<LanguageOption>('Tamil');
@@ -70,6 +105,7 @@ export class EntryEditorComponent {
   private readonly createdAt = signal(this.startingEntry.createdAt);
 
   protected readonly form: EntryForm = this.formBuilder.nonNullable.group({
+    isProtected: this.startingEntry.isProtected,
     sourceLanguage: this.startingEntry.sourceLanguage,
     sourceLanguageOther: this.startingEntry.sourceLanguageOther,
     sourceText: this.startingEntry.sourceText,
@@ -113,6 +149,10 @@ export class EntryEditorComponent {
     this.keepTranslationLanguagesValid();
   }
 
+  protected toggleProtected(): void {
+    this.form.controls.isProtected.setValue(!this.form.controls.isProtected.value);
+  }
+
   protected addTranslation(): void {
     this.translations.push(
       this.createTranslationGroup({
@@ -154,8 +194,37 @@ export class EntryEditorComponent {
   protected formatExplanation(command: RichTextCommand): void {
     const editor = this.explanationEditor();
     editor?.nativeElement.focus();
-    document.execCommand(command);
-    this.syncExplanation();
+    document.execCommand('styleWithCSS', false, 'false');
+    document.execCommand(command, false);
+    this.updateExplanationValue();
+  }
+
+  protected colorExplanation(command: RichTextColorCommand, color: string): void {
+    const editor = this.explanationEditor();
+    editor?.nativeElement.focus();
+    document.execCommand('styleWithCSS', false, 'true');
+
+    const commandWorked = document.execCommand(command, false, color);
+
+    if (command === 'hiliteColor' && !commandWorked) {
+      document.execCommand('backColor', false, color);
+    }
+
+    this.updateExplanationValue();
+  }
+
+  protected keepEditorSelection(event: MouseEvent): void {
+    event.preventDefault();
+  }
+
+  protected updateExplanationValue(): void {
+    const editor = this.explanationEditor();
+
+    if (!editor) {
+      return;
+    }
+
+    this.form.controls.explanationHtml.setValue(editor.nativeElement.innerHTML);
   }
 
   protected syncExplanation(): void {
@@ -225,6 +294,7 @@ export class EntryEditorComponent {
       sourceText: entry.sourceText,
       sourceTransliteration: entry.sourceTransliteration,
       explanationHtml: entry.explanationHtml,
+      isProtected: entry.isProtected,
     });
 
     const editor = this.explanationEditor();
@@ -240,6 +310,7 @@ export class EntryEditorComponent {
       entryId: this.entryId(),
       createdAt: this.createdAt(),
       updatedAt: new Date().toISOString(),
+      isProtected: rawValue.isProtected,
       sourceLanguage: rawValue.sourceLanguage,
       sourceLanguageOther: rawValue.sourceLanguageOther.trim(),
       sourceText: rawValue.sourceText.trim(),
@@ -329,12 +400,48 @@ function sanitizeNode(node: ChildNode): string {
       return `<li>${children}</li>`;
     case 'br':
       return '<br>';
+    case 'font':
+      return sanitizeFontNode(node, children);
+    case 'span':
+      return sanitizeSpanNode(node, children);
     case 'div':
     case 'p':
       return `${children}<br>`;
     default:
       return children;
   }
+}
+
+function sanitizeFontNode(node: HTMLElement, children: string): string {
+  const color = normalizeAllowedColor(node.getAttribute('color') ?? '', allowedTextColors);
+
+  return color ? `<span style="color: ${color}">${children}</span>` : children;
+}
+
+function sanitizeSpanNode(node: HTMLElement, children: string): string {
+  const styles: string[] = [];
+  const color = normalizeAllowedColor(node.style.color, allowedTextColors);
+  const backgroundColor = normalizeAllowedColor(
+    node.style.backgroundColor,
+    allowedBackgroundColors,
+  );
+
+  if (color) {
+    styles.push(`color: ${color}`);
+  }
+
+  if (backgroundColor) {
+    styles.push(`background-color: ${backgroundColor}`);
+  }
+
+  return styles.length > 0 ? `<span style="${styles.join('; ')}">${children}</span>` : children;
+}
+
+function normalizeAllowedColor(value: string, allowedColors: readonly string[]): string {
+  const normalizedValue = value.trim().toLowerCase().replace(/\s+/g, ' ');
+  const aliasedValue = colorAliases[normalizedValue] ?? normalizedValue;
+
+  return allowedColors.find((color) => color === aliasedValue) ?? '';
 }
 
 function escapeHtml(value: string): string {

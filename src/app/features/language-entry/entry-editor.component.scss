@@ -64,12 +64,68 @@ h2 {
   padding: 1rem;
 }
 
+.header-actions,
 .copy-actions,
 .language-options,
 .rich-toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+.header-actions {
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.switch-control {
+  align-items: center;
+  background: #f7faf8;
+  border: 1px solid #cbd8d0;
+  border-radius: 999px;
+  color: #20342a;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-weight: 700;
+  gap: 0.6rem;
+  min-height: 2.55rem;
+  padding: 0.35rem 0.75rem;
+}
+
+.switch-track {
+  background: #7a8b80;
+  border-radius: 999px;
+  display: inline-flex;
+  height: 1.35rem;
+  padding: 0.15rem;
+  transition:
+    background-color 150ms ease,
+    box-shadow 150ms ease;
+  width: 2.55rem;
+}
+
+.switch-thumb {
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 30%);
+  height: 1.05rem;
+  transform: translateX(0);
+  transition: transform 150ms ease;
+  width: 1.05rem;
+}
+
+.switch-control.is-on .switch-track {
+  background: #23543b;
+}
+
+.switch-control.is-on .switch-thumb {
+  transform: translateX(1.2rem);
+}
+
+.switch-control:focus-visible {
+  outline: 3px solid #8ed6ff;
+  outline-offset: 2px;
 }
 
 .field-label,
@@ -212,6 +268,34 @@ button:focus-visible {
   min-width: 2.75rem;
 }
 
+.toolbar-divider {
+  background: #c7d8cd;
+  display: inline-block;
+  min-height: 2.4rem;
+  width: 1px;
+}
+
+.swatch-group {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.swatch-button {
+  border: 1px solid #597064;
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  height: 2.5rem;
+  min-width: 2.5rem;
+  padding: 0;
+}
+
+.text-swatch {
+  background: #ffffff;
+}
+
 .format-button.italic {
   font-style: italic;
 }
@@ -247,6 +331,11 @@ button:focus-visible {
 @media (max-width: 760px) {
   .editor-header,
   .section-heading.with-action {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .header-actions {
     align-items: stretch;
     flex-direction: column;
   }
