@@ -48,10 +48,14 @@ export class LanguageLogSheetService {
     const table = payload.table;
     const columns = table?.cols ?? [];
     const rows = table?.rows ?? [];
-    const headers = resolveHeaders(columns);
-    const firstDataRowNumber = (table?.parsedNumHeaders ?? 1) + 1;
+    const columnHeaders = resolveHeaders(columns);
+    const firstRowCells = resolveCells(rows[0] ?? {}, sheetColumns.length);
+    const hasHeaderRow = isSheetHeaderRow(firstRowCells);
+    const headers = hasHeaderRow ? firstRowCells.map(normalizeColumnLabel) : columnHeaders;
+    const dataRows = hasHeaderRow ? rows.slice(1) : rows;
+    const firstDataRowNumber = hasHeaderRow ? 2 : (table?.parsedNumHeaders ?? 1) + 1;
 
-    return rows
+    return dataRows
       .map((row, index) => ({
         entry: entryFromSheetCells(resolveCells(row, headers.length), headers),
         rowNumber: firstDataRowNumber + index,
@@ -100,6 +104,14 @@ function resolveCells(row: GvizRow, minimumLength: number): string[] {
   }
 
   return values;
+}
+
+function isSheetHeaderRow(cells: readonly string[]): boolean {
+  return (
+    normalizeColumnLabel(cells[0] ?? '') === 'EntryId' &&
+    normalizeColumnLabel(cells[1] ?? '') === 'CreatedAt' &&
+    normalizeColumnLabel(cells[2] ?? '') === 'UpdatedAt'
+  );
 }
 
 function cellValueToString(cell: GvizCell | null): string {

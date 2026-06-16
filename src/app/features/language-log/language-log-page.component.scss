@@ -73,6 +73,12 @@ h1 {
   width: min(76vw, 18rem);
 }
 
+.globe-art svg {
+  display: block;
+  height: auto;
+  width: 100%;
+}
+
 .controls {
   display: grid;
   gap: 0.85rem;
@@ -288,6 +294,18 @@ button:focus-visible {
   padding-left: 1.2rem;
 }
 
+.resources a {
+  color: #1d5d8f;
+  font-weight: 750;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+}
+
+.resources a:focus-visible {
+  outline: 3px solid #8ed6ff;
+  outline-offset: 2px;
+}
+
 .entry-footer {
   font-size: 0.85rem;
 }
@@ -341,6 +359,17 @@ button:focus-visible {
   color: #13231b;
   font-size: 1.2rem;
   margin-bottom: 0;
+}
+
+.close-button {
+  align-items: center;
+  border-radius: 50%;
+  display: inline-flex;
+  font-size: 1.1rem;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0;
+  width: 2.5rem;
 }
 
 @media (min-width: 720px) {
