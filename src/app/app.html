@@ -4,18 +4,24 @@
       {{ title() }}
     </a>
 
-    <button
-      type="button"
-      class="menu-button"
-      (click)="toggleMenu()"
-      [attr.aria-expanded]="isMenuOpen()"
-      aria-controls="primary-menu"
-      aria-label="Toggle navigation menu"
-    >
-      <span class="material-symbols-rounded" aria-hidden="true">
-        {{ isMenuOpen() ? 'close' : 'menu' }}
-      </span>
-    </button>
+    <div class="header-inline-actions">
+      @if (authService.isLoggedIn()) {
+        <span class="greeting">Hi, {{ authService.displayName() }}</span>
+      }
+
+      <button
+        type="button"
+        class="menu-button"
+        (click)="toggleMenu()"
+        [attr.aria-expanded]="isMenuOpen()"
+        aria-controls="primary-menu"
+        aria-label="Toggle navigation menu"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">
+          {{ isMenuOpen() ? 'close' : 'menu' }}
+        </span>
+      </button>
+    </div>
   </div>
 
   <div id="primary-menu" class="menu-panel" [class.open]="isMenuOpen()">
@@ -33,7 +39,6 @@
 
     <div class="auth-actions">
       @if (authService.isLoggedIn()) {
-        <span class="greeting">Hi, {{ authService.displayName() }}</span>
         <button type="button" class="auth-button" (click)="logout()">
           <span class="material-symbols-rounded" aria-hidden="true">logout</span>
           Logout

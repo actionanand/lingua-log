@@ -318,11 +318,17 @@ button:focus-visible {
   background: #ffffff;
   border: 1px solid #d9e3dd;
   border-radius: 8px;
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.7rem;
-  grid-template-columns: 1fr;
+  justify-content: center;
   padding: 1rem;
   text-align: center;
+}
+
+.pagination .secondary-button {
+  flex: 0 0 auto;
+  min-width: 7.5rem;
 }
 
 .page-number-list {
@@ -353,6 +359,16 @@ button:focus-visible {
 
 .page-size-select {
   min-width: 5.5rem;
+}
+
+.page-size-control {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
+.page-size-label {
+  margin-bottom: 0;
 }
 
 .modal-backdrop {
@@ -432,13 +448,13 @@ button:focus-visible {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .pagination {
-    grid-template-columns: auto auto minmax(0, 1fr) auto auto auto;
-    text-align: left;
-  }
-
   .page-number-list {
     justify-content: start;
+  }
+
+  .pagination {
+    justify-content: flex-start;
+    text-align: left;
   }
 }
 

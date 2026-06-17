@@ -193,18 +193,20 @@
         Next
       </button>
 
-      <label class="page-size-label" for="page-size">Rows</label>
-      <select
-        id="page-size"
-        class="select-input page-size-select"
-        [value]="pageSize()"
-        (change)="updatePageSize(pageSizeSelect.value)"
-        #pageSizeSelect
-      >
-        @for (size of pageSizeOptions; track size) {
-          <option [value]="size">{{ size }}</option>
-        }
-      </select>
+      <div class="page-size-control">
+        <label class="page-size-label" for="page-size">Items</label>
+        <select
+          id="page-size"
+          class="select-input page-size-select"
+          [value]="pageSize()"
+          (change)="updatePageSize(pageSizeSelect.value)"
+          #pageSizeSelect
+        >
+          @for (size of pageSizeOptions; track size) {
+            <option [value]="size">{{ size }}</option>
+          }
+        </select>
+      </div>
     </nav>
   }
 </section>
