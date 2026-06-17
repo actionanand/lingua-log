@@ -5,6 +5,17 @@
     </a>
 
     <div class="header-inline-actions">
+      <button
+        type="button"
+        class="auth-button search-button mobile-search-button"
+        (click)="toggleSearch()"
+        [attr.aria-expanded]="isSearchOpen()"
+        aria-controls="log-search-popover"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">search</span>
+        Search
+      </button>
+
       @if (authService.isLoggedIn()) {
         <span class="greeting mobile-greeting">Hi, {{ authService.displayName() }}</span>
       }
@@ -38,9 +49,13 @@
     </nav>
 
     <div class="auth-actions">
+      @if (authService.isLoggedIn()) {
+        <span class="greeting desktop-greeting">Hi, {{ authService.displayName() }}</span>
+      }
+
       <button
         type="button"
-        class="auth-button search-button"
+        class="auth-button search-button desktop-search-button"
         (click)="toggleSearch()"
         [attr.aria-expanded]="isSearchOpen()"
         aria-controls="log-search-popover"
@@ -50,7 +65,6 @@
       </button>
 
       @if (authService.isLoggedIn()) {
-        <span class="greeting desktop-greeting">Hi, {{ authService.displayName() }}</span>
         <button type="button" class="auth-button" (click)="logout()">
           <span class="material-symbols-rounded" aria-hidden="true">logout</span>
           Logout
@@ -66,13 +80,22 @@
 
   @if (isSearchOpen()) {
     <section id="log-search-popover" class="search-popover" aria-label="Search language log">
-      <label class="search-label" for="log-search-input">Search language content</label>
+      <div class="search-popover-header">
+        <label class="search-label" for="log-search-input">Search language content</label>
+        <button
+          type="button"
+          class="close-search-button"
+          (click)="closeSearch()"
+          aria-label="Close search"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+      </div>
       <div class="search-field">
         <span class="material-symbols-rounded" aria-hidden="true">search</span>
         <input
           id="log-search-input"
-          type="search"
-          autofocus
+          type="text"
           [value]="logSearchService.query()"
           (input)="updateSearch(searchInput.value)"
           placeholder="Search sentences, languages, notes"

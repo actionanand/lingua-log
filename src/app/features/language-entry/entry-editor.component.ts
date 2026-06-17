@@ -394,13 +394,13 @@ function sanitizeNode(node: ChildNode): string {
   switch (tagName) {
     case 'b':
     case 'strong':
-      return `<b>${children}</b>`;
+      return wrapWithAllowedStyles(node, `<b>${children}</b>`);
     case 'i':
     case 'em':
-      return `<i>${children}</i>`;
+      return wrapWithAllowedStyles(node, `<i>${children}</i>`);
     case 's':
     case 'strike':
-      return `<s>${children}</s>`;
+      return wrapWithAllowedStyles(node, `<s>${children}</s>`);
     case 'ul':
       return `<ul>${children}</ul>`;
     case 'ol':
@@ -428,6 +428,16 @@ function sanitizeFontNode(node: HTMLElement, children: string): string {
 }
 
 function sanitizeSpanNode(node: HTMLElement, children: string): string {
+  return wrapWithAllowedStyles(node, children);
+}
+
+function wrapWithAllowedStyles(node: HTMLElement, content: string): string {
+  const styleAttribute = allowedStyleAttribute(node);
+
+  return styleAttribute ? `<span style="${styleAttribute}">${content}</span>` : content;
+}
+
+function allowedStyleAttribute(node: HTMLElement): string {
   const styles: string[] = [];
   const color = normalizeAllowedColor(node.style.color, allowedTextColors);
   const backgroundColor = normalizeAllowedColor(
@@ -443,7 +453,7 @@ function sanitizeSpanNode(node: HTMLElement, children: string): string {
     styles.push(`background-color: ${backgroundColor}`);
   }
 
-  return styles.length > 0 ? `<span style="${styles.join('; ')}">${children}</span>` : children;
+  return styles.join('; ');
 }
 
 function normalizeAllowedColor(value: string, allowedColors: readonly string[]): string {
