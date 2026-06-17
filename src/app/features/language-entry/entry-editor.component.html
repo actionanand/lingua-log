@@ -201,7 +201,34 @@
         (click)="formatExplanation('insertUnorderedList')"
         aria-label="Unordered list"
       >
-        List
+        <span class="material-symbols-rounded" aria-hidden="true">format_list_bulleted</span>
+      </button>
+      <button
+        type="button"
+        class="format-button"
+        (mousedown)="keepEditorSelection($event)"
+        (click)="formatExplanation('insertOrderedList')"
+        aria-label="Ordered list"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">format_list_numbered</span>
+      </button>
+      <button
+        type="button"
+        class="format-button"
+        (mousedown)="keepEditorSelection($event)"
+        (click)="formatExplanation('indent')"
+        aria-label="Indent list item"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">format_indent_increase</span>
+      </button>
+      <button
+        type="button"
+        class="format-button"
+        (mousedown)="keepEditorSelection($event)"
+        (click)="formatExplanation('outdent')"
+        aria-label="Outdent list item"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">format_indent_decrease</span>
       </button>
 
       <span class="toolbar-divider" aria-hidden="true"></span>

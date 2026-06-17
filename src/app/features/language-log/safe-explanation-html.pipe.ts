@@ -2,7 +2,13 @@ import { Pipe, PipeTransform, inject } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 const allowedTextColors = ['green', 'red', 'blue', 'purple', 'darkorange'] as const;
-const allowedBackgroundColors = ['lightgreen', 'lightpink', 'yellow', 'lightblue', 'lightgray'] as const;
+const allowedBackgroundColors = [
+  'lightgreen',
+  'lightpink',
+  'yellow',
+  'lightblue',
+  'lightgray',
+] as const;
 const colorAliases: Record<string, string> = {
   'rgb(0, 0, 255)': 'blue',
   'rgb(0, 128, 0)': 'green',
@@ -57,6 +63,8 @@ function sanitizeNode(node: ChildNode): string {
       return `<s>${children}</s>`;
     case 'ul':
       return `<ul>${children}</ul>`;
+    case 'ol':
+      return `<ol>${children}</ol>`;
     case 'li':
       return `<li>${children}</li>`;
     case 'br':
@@ -71,7 +79,10 @@ function sanitizeNode(node: ChildNode): string {
 function sanitizeSpan(node: HTMLElement, children: string): string {
   const styles: string[] = [];
   const color = normalizeAllowedColor(node.style.color, allowedTextColors);
-  const backgroundColor = normalizeAllowedColor(node.style.backgroundColor, allowedBackgroundColors);
+  const backgroundColor = normalizeAllowedColor(
+    node.style.backgroundColor,
+    allowedBackgroundColors,
+  );
 
   if (color) {
     styles.push(`color: ${color}`);

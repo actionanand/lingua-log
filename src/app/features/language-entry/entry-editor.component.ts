@@ -43,7 +43,14 @@ type EntryForm = FormGroup<{
   resources: FormArray<FormControl<string>>;
 }>;
 
-type RichTextCommand = 'bold' | 'italic' | 'strikeThrough' | 'insertUnorderedList';
+type RichTextCommand =
+  | 'bold'
+  | 'italic'
+  | 'strikeThrough'
+  | 'insertUnorderedList'
+  | 'insertOrderedList'
+  | 'indent'
+  | 'outdent';
 type RichTextColorCommand = 'foreColor' | 'hiliteColor';
 
 const textColorOptions = [
@@ -396,6 +403,8 @@ function sanitizeNode(node: ChildNode): string {
       return `<s>${children}</s>`;
     case 'ul':
       return `<ul>${children}</ul>`;
+    case 'ol':
+      return `<ol>${children}</ol>`;
     case 'li':
       return `<li>${children}</li>`;
     case 'br':

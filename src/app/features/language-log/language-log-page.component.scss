@@ -292,6 +292,17 @@ button:focus-visible {
   overflow-wrap: anywhere;
 }
 
+.explanation ul,
+.explanation ol {
+  margin: 0.45rem 0;
+  padding-left: 1.35rem;
+}
+
+.explanation li ul,
+.explanation li ol {
+  margin: 0.3rem 0;
+}
+
 .resources ul {
   margin: 0;
   padding-left: 1.2rem;
@@ -318,17 +329,51 @@ button:focus-visible {
   background: #ffffff;
   border: 1px solid #d9e3dd;
   border-radius: 8px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.7rem;
+  display: grid;
+  gap: 0.9rem;
   justify-content: center;
   padding: 1rem;
   text-align: center;
 }
 
-.pagination .secondary-button {
-  flex: 0 0 auto;
-  min-width: 7.5rem;
+.pagination-controls {
+  align-items: center;
+  display: grid;
+  gap: 0.65rem;
+  justify-items: center;
+}
+
+.pagination-button {
+  align-items: center;
+  background: #eef5f0;
+  border: 1px solid #c7d8cd;
+  border-radius: 999px;
+  color: #173527;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-weight: 850;
+  gap: 0.25rem;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.55rem 1rem;
+}
+
+.pagination-button:not(:disabled):hover,
+.page-number-button:not(.active):hover {
+  background: #e3f0e8;
+}
+
+.page-center {
+  align-items: center;
+  display: grid;
+  gap: 0.45rem;
+  justify-items: center;
+}
+
+.page-status {
+  color: #40564a;
+  font-weight: 800;
 }
 
 .page-number-list {
@@ -339,9 +384,9 @@ button:focus-visible {
 }
 
 .page-number-button {
-  background: #eef5f0;
-  border: 1px solid #c7d8cd;
-  border-radius: 8px;
+  background: #f7faf8;
+  border: 1px solid #d2ded7;
+  border-radius: 50%;
   color: #173527;
   cursor: pointer;
   font: inherit;
@@ -448,13 +493,45 @@ button:focus-visible {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .page-number-list {
-    justify-content: start;
-  }
-
   .pagination {
     justify-content: flex-start;
-    text-align: left;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .pagination-controls {
+    grid-template-columns: auto minmax(12rem, auto) auto;
+  }
+}
+
+@media (max-width: 719px) {
+  .pagination-controls {
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+  }
+
+  .page-center {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .previous-button,
+  .next-button {
+    width: 100%;
+  }
+
+  .previous-button {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .next-button {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .page-size-control {
+    justify-content: center;
   }
 }
 

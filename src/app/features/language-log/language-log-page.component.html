@@ -157,41 +157,47 @@
     </section>
 
     <nav class="pagination" aria-label="Language log pagination">
-      <button
-        type="button"
-        class="secondary-button"
-        (click)="previousPage()"
-        [disabled]="pageIndex() === 0"
-      >
-        Previous
-      </button>
+      <div class="pagination-controls">
+        <button
+          type="button"
+          class="pagination-button previous-button"
+          (click)="previousPage()"
+          [disabled]="pageIndex() === 0"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
+          Previous
+        </button>
 
-      <span>Page {{ pageIndex() + 1 }} of {{ totalPages() }}</span>
+        <div class="page-center">
+          <span class="page-status">Page {{ pageIndex() + 1 }} of {{ totalPages() }}</span>
 
-      @if (totalPages() > 1) {
-        <div class="page-number-list" aria-label="Page numbers">
-          @for (pageNumber of pageNumbers(); track pageNumber) {
-            <button
-              type="button"
-              class="page-number-button"
-              [class.active]="pageNumber === pageIndex()"
-              [attr.aria-current]="pageNumber === pageIndex() ? 'page' : null"
-              (click)="goToPage(pageNumber)"
-            >
-              {{ pageNumber + 1 }}
-            </button>
+          @if (totalPages() > 1) {
+            <div class="page-number-list" aria-label="Page numbers">
+              @for (pageNumber of pageNumbers(); track pageNumber) {
+                <button
+                  type="button"
+                  class="page-number-button"
+                  [class.active]="pageNumber === pageIndex()"
+                  [attr.aria-current]="pageNumber === pageIndex() ? 'page' : null"
+                  (click)="goToPage(pageNumber)"
+                >
+                  {{ pageNumber + 1 }}
+                </button>
+              }
+            </div>
           }
         </div>
-      }
 
-      <button
-        type="button"
-        class="secondary-button"
-        (click)="nextPage()"
-        [disabled]="pageIndex() + 1 >= totalPages()"
-      >
-        Next
-      </button>
+        <button
+          type="button"
+          class="pagination-button next-button"
+          (click)="nextPage()"
+          [disabled]="pageIndex() + 1 >= totalPages()"
+        >
+          Next
+          <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+        </button>
+      </div>
 
       <div class="page-size-control">
         <label class="page-size-label" for="page-size">Items</label>
