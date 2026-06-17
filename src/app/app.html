@@ -1,13 +1,62 @@
 <header class="app-header">
-  <a class="brand" routerLink="/logs" aria-label="LinguaLog home">{{ title() }}</a>
+  <div class="header-topline">
+    <a class="brand" routerLink="/logs" aria-label="LinguaLog home" (click)="closeMenu()">
+      {{ title() }}
+    </a>
 
-  <nav class="app-nav" aria-label="Primary navigation">
-    <a routerLink="/logs" routerLinkActive="active-link">Logs</a>
-    <a routerLink="/converter" routerLinkActive="active-link">Converter</a>
-    <a routerLink="/sheet-preview" routerLinkActive="active-link">Sheet Preview</a>
-  </nav>
+    <div class="header-inline-actions">
+      @if (authService.isLoggedIn()) {
+        <span class="greeting">Hi, {{ authService.displayName() }}</span>
+      }
+
+      <button
+        type="button"
+        class="menu-button"
+        (click)="toggleMenu()"
+        [attr.aria-expanded]="isMenuOpen()"
+        aria-controls="primary-menu"
+        aria-label="Toggle navigation menu"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">
+          {{ isMenuOpen() ? 'close' : 'menu' }}
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <div id="primary-menu" class="menu-panel" [class.open]="isMenuOpen()">
+    <nav class="app-nav" aria-label="Primary navigation">
+      <a routerLink="/logs" routerLinkActive="active-link" (click)="closeMenu()">Logs</a>
+      @if (authService.isLoggedIn()) {
+        <a routerLink="/converter" routerLinkActive="active-link" (click)="closeMenu()"
+          >Converter</a
+        >
+        <a routerLink="/sheet-preview" routerLinkActive="active-link" (click)="closeMenu()"
+          >Sheet Preview</a
+        >
+      }
+    </nav>
+
+    <div class="auth-actions">
+      @if (authService.isLoggedIn()) {
+        <button type="button" class="auth-button" (click)="logout()">
+          <span class="material-symbols-rounded" aria-hidden="true">logout</span>
+          Logout
+        </button>
+      } @else {
+        <button type="button" class="auth-button primary-auth" (click)="openLogin()">
+          <span class="material-symbols-rounded" aria-hidden="true">login</span>
+          Login
+        </button>
+      }
+    </div>
+  </div>
 </header>
 
 <main class="app-main">
   <router-outlet />
 </main>
+
+@if (isLoginOpen()) {
+  <app-login-dialog (closed)="closeLogin()" />
+}

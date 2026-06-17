@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { GLOBE } from '../../../data/images/svg/globe';
+import { AuthService } from '../../core/auth.service';
 import { EntryEditorComponent } from '../language-entry/entry-editor.component';
 import {
   LanguageOption,
@@ -36,6 +37,7 @@ interface LanguageBlock {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LanguageLogPageComponent {
+  protected readonly authService = inject(AuthService);
   private readonly sheetService = inject(LanguageLogSheetService);
   private readonly sanitizer = inject(DomSanitizer);
 
@@ -51,10 +53,15 @@ export class LanguageLogPageComponent {
   });
 
   protected readonly rows = computed(() => this.rowsResource.value() ?? []);
+  protected readonly visibleRows = computed(() =>
+    this.authService.isLoggedIn()
+      ? this.rows()
+      : this.rows().filter((row) => !row.entry.isProtected),
+  );
   protected readonly availableLanguages = computed(() => {
     const languages = new Set<string>(languageOptions);
 
-    for (const row of this.rows()) {
+    for (const row of this.visibleRows()) {
       languages.add(this.displayLanguage(row.entry.sourceLanguage, row.entry.sourceLanguageOther));
 
       for (const translation of row.entry.translations) {
@@ -65,11 +72,19 @@ export class LanguageLogPageComponent {
     return ['All', ...Array.from(languages).sort((a, b) => a.localeCompare(b))];
   });
   protected readonly filteredRows = computed(() =>
-    this.rows().filter((row) => this.visibleLanguageBlocks(row.entry).length > 0),
+    this.visibleRows().filter((row) => this.visibleLanguageBlocks(row.entry).length > 0),
   );
   protected readonly totalPages = computed(() =>
     Math.max(1, Math.ceil(this.filteredRows().length / this.pageSize())),
   );
+  protected readonly pageNumbers = computed(() => {
+    const totalPages = this.totalPages();
+    const currentPage = this.pageIndex();
+    const startPage = Math.max(0, Math.min(currentPage - 2, totalPages - 5));
+    const endPage = Math.min(totalPages, startPage + 5);
+
+    return Array.from({ length: endPage - startPage }, (_, index) => startPage + index);
+  });
   protected readonly pagedRows = computed(() => {
     const startIndex = this.pageIndex() * this.pageSize();
 
@@ -97,6 +112,10 @@ export class LanguageLogPageComponent {
 
   protected nextPage(): void {
     this.pageIndex.update((index) => Math.min(this.totalPages() - 1, index + 1));
+  }
+
+  protected goToPage(pageIndex: number): void {
+    this.pageIndex.set(Math.max(0, Math.min(this.totalPages() - 1, pageIndex)));
   }
 
   protected reload(): void {

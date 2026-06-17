@@ -219,6 +219,9 @@ button:focus-visible {
 }
 
 .edit-button {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.35rem;
   justify-self: start;
 }
 
@@ -315,26 +318,76 @@ button:focus-visible {
   background: #ffffff;
   border: 1px solid #d9e3dd;
   border-radius: 8px;
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.7rem;
-  grid-template-columns: 1fr;
+  justify-content: center;
   padding: 1rem;
   text-align: center;
+}
+
+.pagination .secondary-button {
+  flex: 0 0 auto;
+  min-width: 7.5rem;
+}
+
+.page-number-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: center;
+}
+
+.page-number-button {
+  background: #eef5f0;
+  border: 1px solid #c7d8cd;
+  border-radius: 8px;
+  color: #173527;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  min-height: 2.35rem;
+  min-width: 2.35rem;
+  padding: 0.35rem 0.55rem;
+}
+
+.page-number-button.active {
+  background: #23543b;
+  border-color: #23543b;
+  color: #ffffff;
 }
 
 .page-size-select {
   min-width: 5.5rem;
 }
 
+.page-size-control {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
+.page-size-label {
+  margin-bottom: 0;
+}
+
 .modal-backdrop {
   align-items: start;
-  background: rgb(9 20 14 / 62%);
   display: grid;
   inset: 0;
   overflow: auto;
   padding: 0.75rem;
   position: fixed;
   z-index: 50;
+}
+
+.modal-backdrop-button {
+  background: rgb(9 20 14 / 62%);
+  border: 0;
+  cursor: default;
+  inset: 0;
+  padding: 0;
+  position: fixed;
 }
 
 .edit-modal {
@@ -345,7 +398,9 @@ button:focus-visible {
   margin: 0 auto;
   max-width: 1060px;
   padding: 1rem;
+  position: relative;
   width: min(100%, 1060px);
+  z-index: 1;
 }
 
 .edit-modal-header {
@@ -393,8 +448,12 @@ button:focus-visible {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .page-number-list {
+    justify-content: start;
+  }
+
   .pagination {
-    grid-template-columns: auto auto auto minmax(2rem, 1fr) auto auto;
+    justify-content: flex-start;
     text-align: left;
   }
 }

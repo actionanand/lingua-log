@@ -11,11 +11,46 @@
   z-index: 10;
 }
 
+.header-topline {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
 .brand {
   color: #173527;
   font-size: 1.25rem;
   font-weight: 800;
   text-decoration: none;
+}
+
+.menu-button {
+  align-items: center;
+  background: #eef5f0;
+  border: 1px solid #c7d8cd;
+  border-radius: 8px;
+  color: #173527;
+  cursor: pointer;
+  display: none;
+  height: 2.45rem;
+  justify-content: center;
+  padding: 0;
+  width: 2.45rem;
+}
+
+.header-inline-actions {
+  align-items: center;
+  display: flex;
+  gap: 0.6rem;
+}
+
+.menu-panel {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  gap: 1rem;
+  justify-content: space-between;
 }
 
 .app-nav {
@@ -40,9 +75,45 @@
 }
 
 .app-nav a:focus-visible,
-.brand:focus-visible {
+.brand:focus-visible,
+.menu-button:focus-visible,
+.auth-button:focus-visible {
   outline: 3px solid #8ed6ff;
   outline-offset: 2px;
+}
+
+.auth-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  justify-content: flex-end;
+}
+
+.greeting {
+  color: #2f4739;
+  font-weight: 800;
+}
+
+.auth-button {
+  align-items: center;
+  background: #eef5f0;
+  border: 1px solid #c7d8cd;
+  border-radius: 8px;
+  color: #173527;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-weight: 800;
+  gap: 0.35rem;
+  min-height: 2.4rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.primary-auth {
+  background: #23543b;
+  border-color: #23543b;
+  color: #ffffff;
 }
 
 .app-main {
@@ -55,5 +126,43 @@
   .app-header {
     align-items: stretch;
     flex-direction: column;
+    padding-block: 0.75rem;
+  }
+
+  .menu-button {
+    display: inline-flex;
+  }
+
+  .greeting {
+    font-size: 0.9rem;
+    max-width: 10rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .menu-panel {
+    display: none;
+  }
+
+  .menu-panel.open {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .app-nav {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .app-nav a,
+  .auth-button {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .auth-actions {
+    display: grid;
+    justify-content: flex-start;
   }
 }

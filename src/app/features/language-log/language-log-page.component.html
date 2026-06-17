@@ -75,13 +75,15 @@
   } @else if (filteredRows().length === 0) {
     <section class="empty-state">
       <h2>No visible entries</h2>
-      <p>Protected rows are hidden until login is added. Try another language or scope filter.</p>
+      <p>Protected rows are hidden until login. Try another language or scope filter.</p>
     </section>
   } @else {
     <section class="result-summary" aria-live="polite">
       <p>
-        Showing {{ pagedRows().length }} of {{ filteredRows().length }} visible entries. Protected
-        rows are hidden.
+        Showing {{ pagedRows().length }} of {{ filteredRows().length }} visible entries.
+        @if (!authService.isLoggedIn()) {
+          <span>Protected rows are hidden.</span>
+        }
       </p>
     </section>
 
@@ -97,7 +99,12 @@
               }
             </div>
 
-            <button type="button" class="edit-button" (click)="openEdit(row)">Edit</button>
+            @if (authService.isLoggedIn()) {
+              <button type="button" class="edit-button" (click)="openEdit(row)">
+                <span class="material-symbols-rounded" aria-hidden="true">edit</span>
+                Edit
+              </button>
+            }
           </header>
 
           <div class="language-grid">
@@ -161,6 +168,22 @@
 
       <span>Page {{ pageIndex() + 1 }} of {{ totalPages() }}</span>
 
+      @if (totalPages() > 1) {
+        <div class="page-number-list" aria-label="Page numbers">
+          @for (pageNumber of pageNumbers(); track pageNumber) {
+            <button
+              type="button"
+              class="page-number-button"
+              [class.active]="pageNumber === pageIndex()"
+              [attr.aria-current]="pageNumber === pageIndex() ? 'page' : null"
+              (click)="goToPage(pageNumber)"
+            >
+              {{ pageNumber + 1 }}
+            </button>
+          }
+        </div>
+      }
+
       <button
         type="button"
         class="secondary-button"
@@ -170,38 +193,40 @@
         Next
       </button>
 
-      <label class="page-size-label" for="page-size">Rows</label>
-      <select
-        id="page-size"
-        class="select-input page-size-select"
-        [value]="pageSize()"
-        (change)="updatePageSize(pageSizeSelect.value)"
-        #pageSizeSelect
-      >
-        @for (size of pageSizeOptions; track size) {
-          <option [value]="size">{{ size }}</option>
-        }
-      </select>
+      <div class="page-size-control">
+        <label class="page-size-label" for="page-size">Items</label>
+        <select
+          id="page-size"
+          class="select-input page-size-select"
+          [value]="pageSize()"
+          (change)="updatePageSize(pageSizeSelect.value)"
+          #pageSizeSelect
+        >
+          @for (size of pageSizeOptions; track size) {
+            <option [value]="size">{{ size }}</option>
+          }
+        </select>
+      </div>
     </nav>
   }
 </section>
 
 @if (editingRow(); as row) {
-  <section class="modal-backdrop" role="presentation" (click)="closeEdit()">
-    <div
-      class="edit-modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="edit-modal-title"
-      (click)="$event.stopPropagation()"
-    >
+  <section class="modal-backdrop" role="presentation">
+    <button
+      type="button"
+      class="modal-backdrop-button"
+      (click)="closeEdit()"
+      aria-label="Close editor"
+    ></button>
+    <div class="edit-modal" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
       <header class="edit-modal-header">
         <div>
           <p class="row-meta">Google Sheet row {{ row.rowNumber }}</p>
           <h2 id="edit-modal-title">Edit and copy replacement row</h2>
         </div>
         <button type="button" class="close-button" (click)="closeEdit()" aria-label="Close editor">
-          x
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
         </button>
       </header>
 

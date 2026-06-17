@@ -22,7 +22,7 @@ interface GvizColumn {
 }
 
 interface GvizRow {
-  c?: Array<GvizCell | null>;
+  c?: (GvizCell | null)[];
 }
 
 interface GvizResponse {
@@ -55,12 +55,10 @@ export class LanguageLogSheetService {
     const dataRows = hasHeaderRow ? rows.slice(1) : rows;
     const firstDataRowNumber = hasHeaderRow ? 2 : (table?.parsedNumHeaders ?? 1) + 1;
 
-    return dataRows
-      .map((row, index) => ({
-        entry: entryFromSheetCells(resolveCells(row, headers.length), headers),
-        rowNumber: firstDataRowNumber + index,
-      }))
-      .filter((row) => !row.entry.isProtected);
+    return dataRows.map((row, index) => ({
+      entry: entryFromSheetCells(resolveCells(row, headers.length), headers),
+      rowNumber: firstDataRowNumber + index,
+    }));
   }
 
   private createGvizUrl(): string {

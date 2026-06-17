@@ -1,0 +1,172 @@
+:host {
+  display: contents;
+}
+
+.login-backdrop {
+  align-items: center;
+  display: grid;
+  inset: 0;
+  padding: 1rem;
+  position: fixed;
+  z-index: 80;
+}
+
+.backdrop-button {
+  background: rgb(9 20 14 / 62%);
+  border: 0;
+  cursor: default;
+  inset: 0;
+  padding: 0;
+  position: absolute;
+}
+
+.login-dialog {
+  background: #ffffff;
+  border: 1px solid #d9e3dd;
+  border-radius: 8px;
+  box-shadow: 0 24px 70px rgb(9 20 14 / 32%);
+  display: grid;
+  gap: 0.85rem;
+  margin: 0 auto;
+  max-width: 29rem;
+  padding: 1rem;
+  position: relative;
+  width: min(100%, 29rem);
+  z-index: 1;
+}
+
+.login-dialog.wobble {
+  animation: wobble 360ms ease;
+}
+
+.dialog-header {
+  align-items: start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.eyebrow {
+  color: #426554;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  margin: 0 0 0.25rem;
+  text-transform: uppercase;
+}
+
+h2 {
+  color: #13231b;
+  font-size: 1.45rem;
+  margin: 0;
+}
+
+.field-label {
+  color: #263c30;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.text-input {
+  background: #fbfdfb;
+  border: 1px solid #bfcfc6;
+  border-radius: 8px;
+  color: #17251d;
+  font: inherit;
+  min-height: 2.75rem;
+  padding: 0.65rem 0.75rem;
+  width: 100%;
+}
+
+.password-field {
+  position: relative;
+}
+
+.password-field .text-input {
+  padding-right: 3rem;
+}
+
+.password-toggle,
+.icon-button {
+  align-items: center;
+  background: #eef5f0;
+  border: 1px solid #c7d8cd;
+  border-radius: 50%;
+  color: #173527;
+  cursor: pointer;
+  display: inline-flex;
+  height: 2.4rem;
+  justify-content: center;
+  padding: 0;
+  width: 2.4rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.2rem;
+  top: 0.18rem;
+}
+
+.error-message {
+  background: #fff1f1;
+  border: 1px solid #f1b8b8;
+  border-radius: 8px;
+  color: #8b1e1e;
+  margin: 0;
+  padding: 0.7rem 0.8rem;
+}
+
+.dialog-actions {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: 1fr 1fr;
+}
+
+.primary-button,
+.secondary-button {
+  align-items: center;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-weight: 800;
+  gap: 0.35rem;
+  justify-content: center;
+  min-height: 2.7rem;
+  padding: 0.55rem 0.8rem;
+}
+
+.primary-button {
+  background: #23543b;
+  border: 1px solid #23543b;
+  color: #ffffff;
+}
+
+.secondary-button {
+  background: #eef5f0;
+  border: 1px solid #c7d8cd;
+  color: #173527;
+}
+
+.text-input:focus,
+button:focus-visible {
+  outline: 3px solid #8ed6ff;
+  outline-offset: 2px;
+}
+
+@keyframes wobble {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20%,
+  60% {
+    transform: translateX(-0.55rem);
+  }
+
+  40%,
+  80% {
+    transform: translateX(0.55rem);
+  }
+}

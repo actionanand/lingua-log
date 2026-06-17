@@ -1,0 +1,68 @@
+<section class="login-backdrop" role="presentation">
+  <button type="button" class="backdrop-button" (click)="close()" aria-label="Close login"></button>
+  <form
+    class="login-dialog"
+    [class.wobble]="isWobbling()"
+    [formGroup]="form"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="login-title"
+    (submit)="submit()"
+  >
+    <header class="dialog-header">
+      <div>
+        <p class="eyebrow">Client login</p>
+        <h2 id="login-title">Unlock protected tools</h2>
+      </div>
+
+      <button type="button" class="icon-button" (click)="close()" aria-label="Close login">
+        <span class="material-symbols-rounded" aria-hidden="true">close</span>
+      </button>
+    </header>
+
+    <label class="field-label" for="login-user-name">User name</label>
+    <input
+      id="login-user-name"
+      class="text-input"
+      type="text"
+      formControlName="userName"
+      autocomplete="username"
+      required
+      placeholder="Name or email"
+    />
+
+    <label class="field-label" for="login-password">Password</label>
+    <div class="password-field">
+      <input
+        id="login-password"
+        class="text-input"
+        [type]="isPasswordVisible() ? 'text' : 'password'"
+        formControlName="password"
+        autocomplete="current-password"
+        placeholder="Password"
+      />
+      <button
+        type="button"
+        class="password-toggle"
+        (click)="togglePasswordVisibility()"
+        [attr.aria-label]="isPasswordVisible() ? 'Hide password' : 'Show password'"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">
+          {{ isPasswordVisible() ? 'visibility_off' : 'visibility' }}
+        </span>
+      </button>
+    </div>
+
+    @if (errorMessage()) {
+      <p class="error-message" aria-live="assertive">{{ errorMessage() }}</p>
+    }
+
+    <div class="dialog-actions">
+      <button type="button" class="secondary-button" (click)="close()">Not now</button>
+      <button type="submit" class="primary-button">
+        <span class="material-symbols-rounded" aria-hidden="true">login</span>
+        Log in
+      </button>
+    </div>
+  </form>
+</section>
