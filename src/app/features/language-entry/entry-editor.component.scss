@@ -314,9 +314,15 @@ button:focus-visible {
   content: attr(data-placeholder);
 }
 
-.rich-editor ul {
+.rich-editor ul,
+.rich-editor ol {
   margin: 0.5rem 0;
   padding-left: 1.5rem;
+}
+
+.rich-editor li ul,
+.rich-editor li ol {
+  margin: 0.35rem 0;
 }
 
 .status-message {
