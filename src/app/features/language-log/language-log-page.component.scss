@@ -219,6 +219,9 @@ button:focus-visible {
 }
 
 .edit-button {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.35rem;
   justify-self: start;
 }
 

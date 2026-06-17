@@ -40,9 +40,44 @@
 }
 
 .app-nav a:focus-visible,
-.brand:focus-visible {
+.brand:focus-visible,
+.auth-button:focus-visible {
   outline: 3px solid #8ed6ff;
   outline-offset: 2px;
+}
+
+.auth-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  justify-content: flex-end;
+}
+
+.greeting {
+  color: #2f4739;
+  font-weight: 800;
+}
+
+.auth-button {
+  align-items: center;
+  background: #eef5f0;
+  border: 1px solid #c7d8cd;
+  border-radius: 8px;
+  color: #173527;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-weight: 800;
+  gap: 0.35rem;
+  min-height: 2.4rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.primary-auth {
+  background: #23543b;
+  border-color: #23543b;
+  color: #ffffff;
 }
 
 .app-main {
@@ -55,5 +90,9 @@
   .app-header {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .auth-actions {
+    justify-content: flex-start;
   }
 }

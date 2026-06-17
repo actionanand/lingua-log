@@ -75,13 +75,15 @@
   } @else if (filteredRows().length === 0) {
     <section class="empty-state">
       <h2>No visible entries</h2>
-      <p>Protected rows are hidden until login is added. Try another language or scope filter.</p>
+      <p>Protected rows are hidden until login. Try another language or scope filter.</p>
     </section>
   } @else {
     <section class="result-summary" aria-live="polite">
       <p>
-        Showing {{ pagedRows().length }} of {{ filteredRows().length }} visible entries. Protected
-        rows are hidden.
+        Showing {{ pagedRows().length }} of {{ filteredRows().length }} visible entries.
+        @if (!authService.isLoggedIn()) {
+          <span>Protected rows are hidden.</span>
+        }
       </p>
     </section>
 
@@ -97,7 +99,12 @@
               }
             </div>
 
-            <button type="button" class="edit-button" (click)="openEdit(row)">Edit</button>
+            @if (authService.isLoggedIn()) {
+              <button type="button" class="edit-button" (click)="openEdit(row)">
+                <span class="material-symbols-rounded" aria-hidden="true">edit</span>
+                Edit
+              </button>
+            }
           </header>
 
           <div class="language-grid">
@@ -201,7 +208,7 @@
           <h2 id="edit-modal-title">Edit and copy replacement row</h2>
         </div>
         <button type="button" class="close-button" (click)="closeEdit()" aria-label="Close editor">
-          x
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
         </button>
       </header>
 

@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { loggedInGuard } from './core/auth.guard';
 
 export const routes: Routes = [
   {
@@ -15,18 +16,25 @@ export const routes: Routes = [
   },
   {
     path: 'converter',
+    canMatch: [loggedInGuard],
     loadComponent: () =>
       import('./features/converter/converter-page.component').then((m) => m.ConverterPageComponent),
   },
   {
     path: 'sheet-preview',
+    canMatch: [loggedInGuard],
     loadComponent: () =>
       import('./features/sheet-preview/sheet-preview-page.component').then(
         (m) => m.SheetPreviewPageComponent,
       ),
   },
   {
+    path: 'not-found',
+    loadComponent: () =>
+      import('./features/not-found/not-found-page.component').then((m) => m.NotFoundPageComponent),
+  },
+  {
     path: '**',
-    redirectTo: 'converter',
+    redirectTo: 'not-found',
   },
 ];

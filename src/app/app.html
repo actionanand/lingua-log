@@ -3,11 +3,32 @@
 
   <nav class="app-nav" aria-label="Primary navigation">
     <a routerLink="/logs" routerLinkActive="active-link">Logs</a>
-    <a routerLink="/converter" routerLinkActive="active-link">Converter</a>
-    <a routerLink="/sheet-preview" routerLinkActive="active-link">Sheet Preview</a>
+    @if (authService.isLoggedIn()) {
+      <a routerLink="/converter" routerLinkActive="active-link">Converter</a>
+      <a routerLink="/sheet-preview" routerLinkActive="active-link">Sheet Preview</a>
+    }
   </nav>
+
+  <div class="auth-actions">
+    @if (authService.isLoggedIn()) {
+      <span class="greeting">Hi, {{ authService.displayName() }}</span>
+      <button type="button" class="auth-button" (click)="logout()">
+        <span class="material-symbols-rounded" aria-hidden="true">logout</span>
+        Logout
+      </button>
+    } @else {
+      <button type="button" class="auth-button primary-auth" (click)="openLogin()">
+        <span class="material-symbols-rounded" aria-hidden="true">login</span>
+        Login
+      </button>
+    }
+  </div>
 </header>
 
 <main class="app-main">
   <router-outlet />
 </main>
+
+@if (isLoginOpen()) {
+  <app-login-dialog (closed)="closeLogin()" />
+}
