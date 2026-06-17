@@ -18,12 +18,12 @@
 }
 
 .editor-header {
-  border-bottom: 1px solid #d5ded8;
+  border-bottom: 1px solid var(--border);
   padding-bottom: 1rem;
 }
 
 .eyebrow {
-  color: #426554;
+  color: var(--eyebrow);
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0;
@@ -38,26 +38,26 @@ p {
 }
 
 h1 {
-  color: #17251d;
+  color: var(--heading);
   font-size: 2rem;
   line-height: 1.15;
   margin-bottom: 0;
 }
 
 h2 {
-  color: #17251d;
+  color: var(--heading);
   font-size: 1.15rem;
   margin-bottom: 0.3rem;
 }
 
 .section-heading p {
-  color: #596a60;
+  color: var(--text-muted);
   margin-bottom: 0;
 }
 
 .form-section {
-  background: #ffffff;
-  border: 1px solid #d9e3dd;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 8px;
   display: grid;
   gap: 0.9rem;
@@ -80,10 +80,10 @@ h2 {
 
 .switch-control {
   align-items: center;
-  background: #f7faf8;
-  border: 1px solid #cbd8d0;
+  background: var(--surface-muted);
+  border: 1px solid var(--accent-border);
   border-radius: 999px;
-  color: #20342a;
+  color: var(--text);
   cursor: pointer;
   display: inline-flex;
   font: inherit;
@@ -94,7 +94,7 @@ h2 {
 }
 
 .switch-track {
-  background: #7a8b80;
+  background: var(--border-strong);
   border-radius: 999px;
   display: inline-flex;
   height: 1.35rem;
@@ -106,9 +106,9 @@ h2 {
 }
 
 .switch-thumb {
-  background: #ffffff;
+  background: var(--surface);
   border-radius: 50%;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 30%);
+  box-shadow: 0 1px 2px var(--shadow);
   height: 1.05rem;
   transform: translateX(0);
   transition: transform 150ms ease;
@@ -116,7 +116,7 @@ h2 {
 }
 
 .switch-control.is-on .switch-track {
-  background: #23543b;
+  background: var(--accent);
 }
 
 .switch-control.is-on .switch-thumb {
@@ -124,13 +124,13 @@ h2 {
 }
 
 .switch-control:focus-visible {
-  outline: 3px solid #8ed6ff;
+  outline: 3px solid var(--focus);
   outline-offset: 2px;
 }
 
 .field-label,
 .language-fieldset legend {
-  color: #263c30;
+  color: var(--text);
   display: inline-block;
   font-size: 0.9rem;
   font-weight: 700;
@@ -145,9 +145,9 @@ h2 {
 
 .choice-pill {
   align-items: center;
-  border: 1px solid #cbd8d0;
+  border: 1px solid var(--accent-border);
   border-radius: 999px;
-  color: #20342a;
+  color: var(--text);
   cursor: pointer;
   display: inline-flex;
   font-weight: 650;
@@ -157,19 +157,19 @@ h2 {
 }
 
 .choice-pill:has(input:checked) {
-  background: #dff3e8;
-  border-color: #2f855a;
-  color: #123821;
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--heading);
 }
 
 .text-input,
 .select-input,
 .text-area,
 .rich-editor {
-  background: #fbfdfb;
-  border: 1px solid #bfcfc6;
+  background: var(--surface-soft);
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
-  color: #17251d;
+  color: var(--text);
   font: inherit;
   min-height: 2.7rem;
   padding: 0.7rem 0.8rem;
@@ -190,7 +190,7 @@ h2 {
 .rich-editor:focus,
 .choice-pill:focus-within,
 button:focus-visible {
-  outline: 3px solid #8ed6ff;
+  outline: 3px solid var(--focus);
   outline-offset: 2px;
 }
 
@@ -202,8 +202,8 @@ button:focus-visible {
 
 .translation-row {
   align-items: end;
-  background: #f7faf8;
-  border: 1px solid #d9e3dd;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
   border-radius: 8px;
   display: grid;
   grid-template-columns: minmax(9rem, 0.8fr) minmax(0, 1.8fr) auto;
@@ -242,21 +242,21 @@ button:focus-visible {
 }
 
 .primary-button {
-  background: #23543b;
-  color: #ffffff;
+  background: var(--accent);
+  color: var(--accent-contrast);
 }
 
 .secondary-button,
 .format-button {
-  background: #eef5f0;
-  border-color: #c7d8cd;
-  color: #173527;
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+  color: var(--text);
 }
 
 .icon-button {
-  background: #fff4ed;
-  border-color: #efc6ad;
-  color: #703213;
+  background: var(--danger-soft);
+  border-color: var(--danger-border);
+  color: var(--danger-text);
 }
 
 .secondary-button:disabled {
@@ -269,7 +269,7 @@ button:focus-visible {
 }
 
 .toolbar-divider {
-  background: #c7d8cd;
+  background: var(--accent-border);
   display: inline-block;
   min-height: 2.4rem;
   width: 1px;
@@ -282,7 +282,7 @@ button:focus-visible {
 }
 
 .swatch-button {
-  border: 1px solid #597064;
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   cursor: pointer;
   font: inherit;
@@ -293,7 +293,7 @@ button:focus-visible {
 }
 
 .text-swatch {
-  background: #ffffff;
+  background: var(--surface);
 }
 
 .format-button.italic {
@@ -310,7 +310,7 @@ button:focus-visible {
 }
 
 .rich-editor:empty::before {
-  color: #6b7d72;
+  color: var(--text-muted);
   content: attr(data-placeholder);
 }
 
@@ -326,10 +326,10 @@ button:focus-visible {
 }
 
 .status-message {
-  background: #e7f6ff;
-  border: 1px solid #a7d9f5;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
   border-radius: 8px;
-  color: #17415c;
+  color: var(--text);
   margin: 0;
   padding: 0.75rem 1rem;
 }

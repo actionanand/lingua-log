@@ -75,7 +75,10 @@ export class LanguageLogPageComponent {
   });
   protected readonly filteredRows = computed(() =>
     this.visibleRows().filter(
-      (row) => this.visibleLanguageBlocks(row.entry).length > 0 && this.matchesSearch(row.entry),
+      (row) =>
+        (this.sourceMatchesFilters(row.entry) ||
+          this.visibleLanguageBlocks(row.entry).length > 0) &&
+        this.matchesSearch(row.entry),
     ),
   );
   protected readonly totalPages = computed(() =>
@@ -156,30 +159,26 @@ export class LanguageLogPageComponent {
     return '';
   }
 
+  protected resourceLabel(index: number): string {
+    return `Resource ${index + 1}`;
+  }
+
+  protected sourceDisplayLanguage(entry: LinguaLogEntry): string {
+    return this.displayLanguage(entry.sourceLanguage, entry.sourceLanguageOther);
+  }
+
   protected visibleLanguageBlocks(entry: LinguaLogEntry): LanguageBlock[] {
-    const blocks: LanguageBlock[] = [];
-
-    if (this.selectedScope() !== 'translation') {
-      blocks.push({
-        key: `${entry.entryId}-source`,
-        language: this.displayLanguage(entry.sourceLanguage, entry.sourceLanguageOther),
-        role: 'Source',
-        text: entry.sourceText,
-        transliteration: entry.sourceTransliteration,
-      });
+    if (this.selectedScope() === 'source') {
+      return [];
     }
 
-    if (this.selectedScope() !== 'source') {
-      blocks.push(
-        ...entry.translations.map((translation, index) => ({
-          key: `${entry.entryId}-translation-${index}`,
-          language: this.displayLanguage(translation.language, translation.languageOther),
-          role: 'Translation' as const,
-          text: translation.text,
-          transliteration: '',
-        })),
-      );
-    }
+    const blocks: LanguageBlock[] = entry.translations.map((translation, index) => ({
+      key: `${entry.entryId}-translation-${index}`,
+      language: this.displayLanguage(translation.language, translation.languageOther),
+      role: 'Translation' as const,
+      text: translation.text,
+      transliteration: '',
+    }));
 
     return blocks.filter((block) => this.matchesLanguageFilter(block.language));
   }
@@ -211,6 +210,13 @@ export class LanguageLogPageComponent {
 
   private matchesLanguageFilter(language: string): boolean {
     return this.selectedLanguage() === 'All' || language === this.selectedLanguage();
+  }
+
+  private sourceMatchesFilters(entry: LinguaLogEntry): boolean {
+    return (
+      this.selectedScope() !== 'translation' &&
+      this.matchesLanguageFilter(this.sourceDisplayLanguage(entry))
+    );
   }
 
   private matchesSearch(entry: LinguaLogEntry): boolean {
