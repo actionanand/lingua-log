@@ -30,17 +30,28 @@ interface LanguageBlock {
   transliteration: string;
 }
 
+interface CapacitorBridge {
+  getPlatform?: () => string;
+  isNativePlatform?: () => boolean;
+}
+
 @Component({
   selector: 'app-language-log-page',
   imports: [EntryEditorComponent, SafeExplanationHtmlPipe],
   templateUrl: './language-log-page.component.html',
   styleUrl: './language-log-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '(touchstart)': 'onTouchStart($event)',
+    '(touchmove)': 'onTouchMove($event)',
+    '(touchend)': 'onTouchEnd()',
+    '(touchcancel)': 'onTouchEnd()',
+  },
 })
 export class LanguageLogPageComponent {
   protected readonly authService = inject(AuthService);
   protected readonly logSearchService = inject(LogSearchService);
-  private readonly sheetService = inject(LanguageLogSheetService);
+  protected readonly sheetService = inject(LanguageLogSheetService);
   private readonly sanitizer = inject(DomSanitizer);
 
   protected readonly globeSvg = this.sanitizer.bypassSecurityTrustHtml(GLOBE);
@@ -50,9 +61,11 @@ export class LanguageLogPageComponent {
   protected readonly pageIndex = signal(0);
   protected readonly pageSize = signal(10);
   protected readonly editingRow = signal<LanguageLogSheetRow | null>(null);
+  protected readonly pullDistance = signal(0);
   protected readonly rowsResource = resource({
     loader: ({ abortSignal }) => this.sheetService.fetchRows(abortSignal),
   });
+  private touchStartY = 0;
 
   protected readonly rows = computed(() => this.rowsResource.value() ?? []);
   protected readonly visibleRows = computed(() =>
@@ -139,6 +152,47 @@ export class LanguageLogPageComponent {
 
   protected closeEdit(): void {
     this.editingRow.set(null);
+  }
+
+  protected offlineCacheMessage(): string {
+    const cachedAt = this.sheetService.offlineCachedAt();
+
+    if (!cachedAt) {
+      return 'Offline content. Pull down or tap Reload when you are online.';
+    }
+
+    return `Offline content from ${this.formatDate(cachedAt)}. Pull down or tap Reload to fetch fresh data.`;
+  }
+
+  protected onTouchStart(event: TouchEvent): void {
+    if (!isNativeAndroid() || window.scrollY > 0 || this.rowsResource.isLoading()) {
+      return;
+    }
+
+    this.touchStartY = event.touches[0]?.clientY ?? 0;
+  }
+
+  protected onTouchMove(event: TouchEvent): void {
+    if (!isNativeAndroid() || this.touchStartY === 0 || window.scrollY > 0) {
+      return;
+    }
+
+    const currentY = event.touches[0]?.clientY ?? 0;
+    const distance = Math.max(0, Math.min(96, currentY - this.touchStartY));
+
+    if (distance > 8) {
+      this.pullDistance.set(distance);
+    }
+  }
+
+  protected onTouchEnd(): void {
+    const distance = this.pullDistance();
+    this.touchStartY = 0;
+    this.pullDistance.set(0);
+
+    if (isNativeAndroid() && distance >= 72) {
+      this.reload();
+    }
   }
 
   protected resourceHref(resource: string): string {
@@ -255,4 +309,12 @@ function htmlToText(value: string): string {
   template.innerHTML = value;
 
   return template.content.textContent ?? '';
+}
+
+function isNativeAndroid(): boolean {
+  const capacitor = (globalThis as typeof globalThis & { Capacitor?: CapacitorBridge }).Capacitor;
+
+  return (
+    capacitor?.getPlatform?.() === 'android' && (capacitor.isNativePlatform?.() ?? true) === true
+  );
 }
