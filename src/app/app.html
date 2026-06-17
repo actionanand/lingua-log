@@ -6,7 +6,7 @@
 
     <div class="header-inline-actions">
       @if (authService.isLoggedIn()) {
-        <span class="greeting">Hi, {{ authService.displayName() }}</span>
+        <span class="greeting mobile-greeting">Hi, {{ authService.displayName() }}</span>
       }
 
       <button
@@ -38,7 +38,19 @@
     </nav>
 
     <div class="auth-actions">
+      <button
+        type="button"
+        class="auth-button search-button"
+        (click)="toggleSearch()"
+        [attr.aria-expanded]="isSearchOpen()"
+        aria-controls="log-search-popover"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">search</span>
+        Search
+      </button>
+
       @if (authService.isLoggedIn()) {
+        <span class="greeting desktop-greeting">Hi, {{ authService.displayName() }}</span>
         <button type="button" class="auth-button" (click)="logout()">
           <span class="material-symbols-rounded" aria-hidden="true">logout</span>
           Logout
@@ -51,6 +63,34 @@
       }
     </div>
   </div>
+
+  @if (isSearchOpen()) {
+    <section id="log-search-popover" class="search-popover" aria-label="Search language log">
+      <label class="search-label" for="log-search-input">Search language content</label>
+      <div class="search-field">
+        <span class="material-symbols-rounded" aria-hidden="true">search</span>
+        <input
+          id="log-search-input"
+          type="search"
+          autofocus
+          [value]="logSearchService.query()"
+          (input)="updateSearch(searchInput.value)"
+          placeholder="Search sentences, languages, notes"
+          #searchInput
+        />
+        @if (logSearchService.query()) {
+          <button
+            type="button"
+            class="clear-search-button"
+            (click)="clearSearch()"
+            aria-label="Clear search"
+          >
+            <span class="material-symbols-rounded" aria-hidden="true">close</span>
+          </button>
+        }
+      </div>
+    </section>
+  }
 </header>
 
 <main class="app-main">

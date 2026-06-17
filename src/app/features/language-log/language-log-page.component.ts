@@ -9,6 +9,7 @@ import {
 import { DomSanitizer } from '@angular/platform-browser';
 import { GLOBE } from '../../../data/images/svg/globe';
 import { AuthService } from '../../core/auth.service';
+import { LogSearchService } from '../../core/log-search.service';
 import { EntryEditorComponent } from '../language-entry/entry-editor.component';
 import {
   LanguageOption,
@@ -38,6 +39,7 @@ interface LanguageBlock {
 })
 export class LanguageLogPageComponent {
   protected readonly authService = inject(AuthService);
+  protected readonly logSearchService = inject(LogSearchService);
   private readonly sheetService = inject(LanguageLogSheetService);
   private readonly sanitizer = inject(DomSanitizer);
 
@@ -72,21 +74,26 @@ export class LanguageLogPageComponent {
     return ['All', ...Array.from(languages).sort((a, b) => a.localeCompare(b))];
   });
   protected readonly filteredRows = computed(() =>
-    this.visibleRows().filter((row) => this.visibleLanguageBlocks(row.entry).length > 0),
+    this.visibleRows().filter(
+      (row) => this.visibleLanguageBlocks(row.entry).length > 0 && this.matchesSearch(row.entry),
+    ),
   );
   protected readonly totalPages = computed(() =>
     Math.max(1, Math.ceil(this.filteredRows().length / this.pageSize())),
   );
+  protected readonly activePageIndex = computed(() =>
+    Math.min(this.pageIndex(), this.totalPages() - 1),
+  );
   protected readonly pageNumbers = computed(() => {
     const totalPages = this.totalPages();
-    const currentPage = this.pageIndex();
+    const currentPage = this.activePageIndex();
     const startPage = Math.max(0, Math.min(currentPage - 2, totalPages - 5));
     const endPage = Math.min(totalPages, startPage + 5);
 
     return Array.from({ length: endPage - startPage }, (_, index) => startPage + index);
   });
   protected readonly pagedRows = computed(() => {
-    const startIndex = this.pageIndex() * this.pageSize();
+    const startIndex = this.activePageIndex() * this.pageSize();
 
     return this.filteredRows().slice(startIndex, startIndex + this.pageSize());
   });
@@ -107,11 +114,11 @@ export class LanguageLogPageComponent {
   }
 
   protected previousPage(): void {
-    this.pageIndex.update((index) => Math.max(0, index - 1));
+    this.pageIndex.set(Math.max(0, this.activePageIndex() - 1));
   }
 
   protected nextPage(): void {
-    this.pageIndex.update((index) => Math.min(this.totalPages() - 1, index + 1));
+    this.pageIndex.set(Math.min(this.totalPages() - 1, this.activePageIndex() + 1));
   }
 
   protected goToPage(pageIndex: number): void {
@@ -205,4 +212,37 @@ export class LanguageLogPageComponent {
   private matchesLanguageFilter(language: string): boolean {
     return this.selectedLanguage() === 'All' || language === this.selectedLanguage();
   }
+
+  private matchesSearch(entry: LinguaLogEntry): boolean {
+    const query = this.logSearchService.query().trim().toLowerCase();
+
+    if (!query) {
+      return true;
+    }
+
+    const searchableText = [
+      entry.sourceLanguage,
+      entry.sourceLanguageOther,
+      entry.sourceText,
+      entry.sourceTransliteration,
+      htmlToText(entry.explanationHtml),
+      ...entry.resources,
+      ...entry.translations.flatMap((translation) => [
+        translation.language,
+        translation.languageOther,
+        translation.text,
+      ]),
+    ]
+      .join(' ')
+      .toLowerCase();
+
+    return searchableText.includes(query);
+  }
+}
+
+function htmlToText(value: string): string {
+  const template = document.createElement('template');
+  template.innerHTML = value;
+
+  return template.content.textContent ?? '';
 }

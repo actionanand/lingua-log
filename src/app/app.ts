@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/auth.service';
+import { LogSearchService } from './core/log-search.service';
 import { LoginDialogComponent } from './shared/login-dialog/login-dialog.component';
 
 @Component({
@@ -11,10 +12,12 @@ import { LoginDialogComponent } from './shared/login-dialog/login-dialog.compone
 })
 export class App {
   protected readonly authService = inject(AuthService);
+  protected readonly logSearchService = inject(LogSearchService);
   private readonly router = inject(Router);
   protected readonly title = signal('LinguaLog');
   protected readonly isLoginOpen = signal(false);
   protected readonly isMenuOpen = signal(false);
+  protected readonly isSearchOpen = signal(false);
 
   protected toggleMenu(): void {
     this.isMenuOpen.update((value) => !value);
@@ -24,9 +27,27 @@ export class App {
     this.isMenuOpen.set(false);
   }
 
+  protected toggleSearch(): void {
+    this.isSearchOpen.update((value) => !value);
+    this.closeMenu();
+  }
+
+  protected closeSearch(): void {
+    this.isSearchOpen.set(false);
+  }
+
+  protected updateSearch(value: string): void {
+    this.logSearchService.updateQuery(value);
+  }
+
+  protected clearSearch(): void {
+    this.logSearchService.clear();
+  }
+
   protected openLogin(): void {
     this.isLoginOpen.set(true);
     this.closeMenu();
+    this.closeSearch();
   }
 
   protected closeLogin(): void {

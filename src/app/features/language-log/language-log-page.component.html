@@ -81,6 +81,9 @@
     <section class="result-summary" aria-live="polite">
       <p>
         Showing {{ pagedRows().length }} of {{ filteredRows().length }} visible entries.
+        @if (logSearchService.query()) {
+          <span>Search: "{{ logSearchService.query() }}".</span>
+        }
         @if (!authService.isLoggedIn()) {
           <span>Protected rows are hidden.</span>
         }
@@ -162,14 +165,14 @@
           type="button"
           class="pagination-button previous-button"
           (click)="previousPage()"
-          [disabled]="pageIndex() === 0"
+          [disabled]="activePageIndex() === 0"
         >
           <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
           Previous
         </button>
 
         <div class="page-center">
-          <span class="page-status">Page {{ pageIndex() + 1 }} of {{ totalPages() }}</span>
+          <span class="page-status">Page {{ activePageIndex() + 1 }} of {{ totalPages() }}</span>
 
           @if (totalPages() > 1) {
             <div class="page-number-list" aria-label="Page numbers">
@@ -177,8 +180,8 @@
                 <button
                   type="button"
                   class="page-number-button"
-                  [class.active]="pageNumber === pageIndex()"
-                  [attr.aria-current]="pageNumber === pageIndex() ? 'page' : null"
+                  [class.active]="pageNumber === activePageIndex()"
+                  [attr.aria-current]="pageNumber === activePageIndex() ? 'page' : null"
                   (click)="goToPage(pageNumber)"
                 >
                   {{ pageNumber + 1 }}
@@ -192,7 +195,7 @@
           type="button"
           class="pagination-button next-button"
           (click)="nextPage()"
-          [disabled]="pageIndex() + 1 >= totalPages()"
+          [disabled]="activePageIndex() + 1 >= totalPages()"
         >
           Next
           <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
