@@ -163,6 +163,10 @@ export class LanguageLogPageComponent {
     return `Resource ${index + 1}`;
   }
 
+  protected displayRowNumber(rowNumber: number): number {
+    return Math.max(1, rowNumber - 1);
+  }
+
   protected sourceDisplayLanguage(entry: LinguaLogEntry): string {
     return this.displayLanguage(entry.sourceLanguage, entry.sourceLanguageOther);
   }

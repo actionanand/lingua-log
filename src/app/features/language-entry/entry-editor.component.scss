@@ -80,8 +80,8 @@ h2 {
 
 .switch-control {
   align-items: center;
-  background: var(--surface-muted);
-  border: 1px solid var(--accent-border);
+  background: transparent;
+  border: 0;
   border-radius: 999px;
   color: var(--text);
   cursor: pointer;
@@ -89,8 +89,14 @@ h2 {
   font: inherit;
   font-weight: 700;
   gap: 0.6rem;
-  min-height: 2.55rem;
-  padding: 0.35rem 0.75rem;
+  min-height: 2.35rem;
+  padding: 0.2rem 0.1rem;
+}
+
+.switch-control strong {
+  display: inline-block;
+  min-width: 2rem;
+  text-align: left;
 }
 
 .switch-track {
@@ -350,9 +356,14 @@ button:focus-visible {
     width: 100%;
   }
 
-  .copy-actions button,
-  .section-heading.with-action button {
+  .copy-actions button {
     flex: 1 1 10rem;
+  }
+
+  .section-heading.with-action button {
+    align-self: start;
+    flex: 0 0 auto;
+    width: auto;
   }
 
   .translation-row,

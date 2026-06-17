@@ -87,9 +87,6 @@
         @if (logSearchService.query()) {
           <span>Search: "{{ logSearchService.query() }}".</span>
         }
-        @if (!authService.isLoggedIn()) {
-          <span>Protected rows are hidden.</span>
-        }
       </p>
     </section>
 
@@ -98,7 +95,7 @@
         <article class="entry-card">
           <header class="entry-card-header">
             <div class="source-main">
-              <p class="row-meta">Google Sheet row {{ row.rowNumber }}</p>
+              <p class="row-meta">{{ displayRowNumber(row.rowNumber) }}</p>
               <h2 class="source-sentence">{{ row.entry.sourceText }}</h2>
               @if (row.entry.sourceTransliteration) {
                 <p class="source-transliteration">{{ row.entry.sourceTransliteration }}</p>
