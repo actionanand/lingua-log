@@ -16,7 +16,7 @@
 
 .orbit {
   display: grid;
-  height: 12rem;
+  height: 16rem;
   margin: 0 auto;
   place-items: center;
   position: relative;
@@ -48,19 +48,49 @@
 
 .orbit span:nth-child(1) {
   left: 0;
-  top: 1.5rem;
+  top: 1.4rem;
 }
 
 .orbit span:nth-child(2) {
   right: 0;
-  top: 4.7rem;
+  top: 3rem;
   animation-delay: 220ms;
 }
 
 .orbit span:nth-child(3) {
-  bottom: 1rem;
+  bottom: 1.4rem;
   left: 31%;
   animation-delay: 440ms;
+}
+
+.orbit span:nth-child(4) {
+  left: 7%;
+  top: 7.1rem;
+  animation-delay: 660ms;
+}
+
+.orbit span:nth-child(5) {
+  right: 8%;
+  bottom: 3.8rem;
+  animation-delay: 880ms;
+}
+
+.orbit span:nth-child(6) {
+  left: 34%;
+  top: 0;
+  animation-delay: 1100ms;
+}
+
+.orbit span:nth-child(7) {
+  bottom: 0;
+  right: 16%;
+  animation-delay: 1320ms;
+}
+
+.orbit span:nth-child(8) {
+  left: 19%;
+  bottom: 4.1rem;
+  animation-delay: 1540ms;
 }
 
 .not-found-copy {
@@ -102,6 +132,7 @@ p {
 .secondary-button {
   align-items: center;
   border-radius: 8px;
+  cursor: pointer;
   display: inline-flex;
   font: inherit;
   font-weight: 850;

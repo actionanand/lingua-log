@@ -4,12 +4,20 @@
 
 .login-backdrop {
   align-items: center;
-  background: rgb(9 20 14 / 62%);
   display: grid;
   inset: 0;
   padding: 1rem;
   position: fixed;
   z-index: 80;
+}
+
+.backdrop-button {
+  background: rgb(9 20 14 / 62%);
+  border: 0;
+  cursor: default;
+  inset: 0;
+  padding: 0;
+  position: absolute;
 }
 
 .login-dialog {
@@ -22,7 +30,9 @@
   margin: 0 auto;
   max-width: 29rem;
   padding: 1rem;
+  position: relative;
   width: min(100%, 29rem);
+  z-index: 1;
 }
 
 .login-dialog.wobble {

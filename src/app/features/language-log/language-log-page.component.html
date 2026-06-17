@@ -168,6 +168,22 @@
 
       <span>Page {{ pageIndex() + 1 }} of {{ totalPages() }}</span>
 
+      @if (totalPages() > 1) {
+        <div class="page-number-list" aria-label="Page numbers">
+          @for (pageNumber of pageNumbers(); track pageNumber) {
+            <button
+              type="button"
+              class="page-number-button"
+              [class.active]="pageNumber === pageIndex()"
+              [attr.aria-current]="pageNumber === pageIndex() ? 'page' : null"
+              (click)="goToPage(pageNumber)"
+            >
+              {{ pageNumber + 1 }}
+            </button>
+          }
+        </div>
+      }
+
       <button
         type="button"
         class="secondary-button"
@@ -194,14 +210,14 @@
 </section>
 
 @if (editingRow(); as row) {
-  <section class="modal-backdrop" role="presentation" (click)="closeEdit()">
-    <div
-      class="edit-modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="edit-modal-title"
-      (click)="$event.stopPropagation()"
-    >
+  <section class="modal-backdrop" role="presentation">
+    <button
+      type="button"
+      class="modal-backdrop-button"
+      (click)="closeEdit()"
+      aria-label="Close editor"
+    ></button>
+    <div class="edit-modal" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
       <header class="edit-modal-header">
         <div>
           <p class="row-meta">Google Sheet row {{ row.rowNumber }}</p>

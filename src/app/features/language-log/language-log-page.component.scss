@@ -325,19 +325,53 @@ button:focus-visible {
   text-align: center;
 }
 
+.page-number-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: center;
+}
+
+.page-number-button {
+  background: #eef5f0;
+  border: 1px solid #c7d8cd;
+  border-radius: 8px;
+  color: #173527;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  min-height: 2.35rem;
+  min-width: 2.35rem;
+  padding: 0.35rem 0.55rem;
+}
+
+.page-number-button.active {
+  background: #23543b;
+  border-color: #23543b;
+  color: #ffffff;
+}
+
 .page-size-select {
   min-width: 5.5rem;
 }
 
 .modal-backdrop {
   align-items: start;
-  background: rgb(9 20 14 / 62%);
   display: grid;
   inset: 0;
   overflow: auto;
   padding: 0.75rem;
   position: fixed;
   z-index: 50;
+}
+
+.modal-backdrop-button {
+  background: rgb(9 20 14 / 62%);
+  border: 0;
+  cursor: default;
+  inset: 0;
+  padding: 0;
+  position: fixed;
 }
 
 .edit-modal {
@@ -348,7 +382,9 @@ button:focus-visible {
   margin: 0 auto;
   max-width: 1060px;
   padding: 1rem;
+  position: relative;
   width: min(100%, 1060px);
+  z-index: 1;
 }
 
 .edit-modal-header {
@@ -397,8 +433,12 @@ button:focus-visible {
   }
 
   .pagination {
-    grid-template-columns: auto auto auto minmax(2rem, 1fr) auto auto;
+    grid-template-columns: auto auto minmax(0, 1fr) auto auto auto;
     text-align: left;
+  }
+
+  .page-number-list {
+    justify-content: start;
   }
 }
 

@@ -14,9 +14,19 @@ export class App {
   private readonly router = inject(Router);
   protected readonly title = signal('LinguaLog');
   protected readonly isLoginOpen = signal(false);
+  protected readonly isMenuOpen = signal(false);
+
+  protected toggleMenu(): void {
+    this.isMenuOpen.update((value) => !value);
+  }
+
+  protected closeMenu(): void {
+    this.isMenuOpen.set(false);
+  }
 
   protected openLogin(): void {
     this.isLoginOpen.set(true);
+    this.closeMenu();
   }
 
   protected closeLogin(): void {
@@ -25,6 +35,7 @@ export class App {
 
   protected logout(): void {
     this.authService.logout();
+    this.closeMenu();
     void this.router.navigateByUrl('/logs');
   }
 }

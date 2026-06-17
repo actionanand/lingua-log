@@ -77,6 +77,14 @@ export class LanguageLogPageComponent {
   protected readonly totalPages = computed(() =>
     Math.max(1, Math.ceil(this.filteredRows().length / this.pageSize())),
   );
+  protected readonly pageNumbers = computed(() => {
+    const totalPages = this.totalPages();
+    const currentPage = this.pageIndex();
+    const startPage = Math.max(0, Math.min(currentPage - 2, totalPages - 5));
+    const endPage = Math.min(totalPages, startPage + 5);
+
+    return Array.from({ length: endPage - startPage }, (_, index) => startPage + index);
+  });
   protected readonly pagedRows = computed(() => {
     const startIndex = this.pageIndex() * this.pageSize();
 
@@ -104,6 +112,10 @@ export class LanguageLogPageComponent {
 
   protected nextPage(): void {
     this.pageIndex.update((index) => Math.min(this.totalPages() - 1, index + 1));
+  }
+
+  protected goToPage(pageIndex: number): void {
+    this.pageIndex.set(Math.max(0, Math.min(this.totalPages() - 1, pageIndex)));
   }
 
   protected reload(): void {

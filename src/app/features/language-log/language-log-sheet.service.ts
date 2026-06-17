@@ -22,7 +22,7 @@ interface GvizColumn {
 }
 
 interface GvizRow {
-  c?: Array<GvizCell | null>;
+  c?: (GvizCell | null)[];
 }
 
 interface GvizResponse {
