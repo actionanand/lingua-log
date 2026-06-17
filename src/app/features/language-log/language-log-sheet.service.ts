@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import {
   LinguaLogEntry,
@@ -33,18 +33,58 @@ interface GvizResponse {
   };
 }
 
+interface CachedRows {
+  cachedAt: string;
+  rows: LanguageLogSheetRow[];
+}
+
+interface CapacitorBridge {
+  getPlatform?: () => string;
+  isNativePlatform?: () => boolean;
+}
+
+const offlineCacheKey = 'lingua-log.android.sheet-cache.v1';
+const offlineCacheLimit = 30;
+
 @Injectable({
   providedIn: 'root',
 })
 export class LanguageLogSheetService {
+  readonly isOfflineCache = signal(false);
+  readonly offlineCachedAt = signal('');
+
   async fetchRows(abortSignal: AbortSignal): Promise<LanguageLogSheetRow[]> {
-    const response = await fetch(this.createGvizUrl(), { signal: abortSignal });
+    this.isOfflineCache.set(false);
 
-    if (!response.ok) {
-      throw new Error(`Google Sheet request failed with ${response.status}`);
+    try {
+      const response = await fetch(this.createGvizUrl(), { signal: abortSignal });
+
+      if (!response.ok) {
+        throw new Error(`Google Sheet request failed with ${response.status}`);
+      }
+
+      const rows = this.parseRows(await response.text());
+      this.cacheRows(rows);
+      this.offlineCachedAt.set('');
+
+      return rows;
+    } catch (error) {
+      if (isNativeAndroid() && !navigator.onLine) {
+        const cachedRows = this.readCachedRows();
+
+        if (cachedRows) {
+          this.isOfflineCache.set(true);
+          this.offlineCachedAt.set(cachedRows.cachedAt);
+          return cachedRows.rows;
+        }
+      }
+
+      throw error;
     }
+  }
 
-    const payload = parseGvizResponse(await response.text());
+  private parseRows(text: string): LanguageLogSheetRow[] {
+    const payload = parseGvizResponse(text);
     const table = payload.table;
     const columns = table?.cols ?? [];
     const rows = table?.rows ?? [];
@@ -61,6 +101,34 @@ export class LanguageLogSheetService {
     }));
   }
 
+  private cacheRows(rows: readonly LanguageLogSheetRow[]): void {
+    if (!isNativeAndroid()) {
+      return;
+    }
+
+    const cachedRows: CachedRows = {
+      cachedAt: new Date().toISOString(),
+      rows: rows.slice(0, offlineCacheLimit),
+    };
+
+    localStorage.setItem(offlineCacheKey, JSON.stringify(cachedRows));
+  }
+
+  private readCachedRows(): CachedRows | null {
+    const rawValue = localStorage.getItem(offlineCacheKey);
+
+    if (!rawValue) {
+      return null;
+    }
+
+    try {
+      const cachedRows = JSON.parse(rawValue) as CachedRows;
+      return Array.isArray(cachedRows.rows) ? cachedRows : null;
+    } catch {
+      return null;
+    }
+  }
+
   private createGvizUrl(): string {
     const params = new URLSearchParams({
       gid: String(environment.SHEET_GID),
@@ -69,6 +137,14 @@ export class LanguageLogSheetService {
 
     return `https://docs.google.com/spreadsheets/d/${environment.GOOGLE_SHEET_ID}/gviz/tq?${params.toString()}`;
   }
+}
+
+function isNativeAndroid(): boolean {
+  const capacitor = (globalThis as typeof globalThis & { Capacitor?: CapacitorBridge }).Capacitor;
+
+  return (
+    capacitor?.getPlatform?.() === 'android' && (capacitor.isNativePlatform?.() ?? true) === true
+  );
 }
 
 function parseGvizResponse(text: string): GvizResponse {
