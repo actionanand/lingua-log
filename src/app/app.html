@@ -75,6 +75,16 @@
           Login
         </button>
       }
+
+      <button
+        type="button"
+        class="auth-button theme-button"
+        (click)="cycleTheme()"
+        [attr.aria-label]="'Theme mode: ' + themeService.label() + '. Change theme mode'"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">{{ themeService.icon() }}</span>
+        {{ themeService.label() }}
+      </button>
     </div>
   </div>
 

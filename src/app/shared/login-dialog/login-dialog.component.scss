@@ -12,7 +12,7 @@
 }
 
 .backdrop-button {
-  background: rgb(9 20 14 / 62%);
+  background: var(--backdrop);
   border: 0;
   cursor: default;
   inset: 0;
@@ -21,10 +21,10 @@
 }
 
 .login-dialog {
-  background: #ffffff;
-  border: 1px solid #d9e3dd;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  box-shadow: 0 24px 70px rgb(9 20 14 / 32%);
+  box-shadow: 0 24px 70px var(--shadow-strong);
   display: grid;
   gap: 0.85rem;
   margin: 0 auto;
@@ -47,7 +47,7 @@
 }
 
 .eyebrow {
-  color: #426554;
+  color: var(--eyebrow);
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0;
@@ -56,22 +56,22 @@
 }
 
 h2 {
-  color: #13231b;
+  color: var(--heading);
   font-size: 1.45rem;
   margin: 0;
 }
 
 .field-label {
-  color: #263c30;
+  color: var(--text);
   font-size: 0.9rem;
   font-weight: 800;
 }
 
 .text-input {
-  background: #fbfdfb;
-  border: 1px solid #bfcfc6;
+  background: var(--surface-soft);
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
-  color: #17251d;
+  color: var(--text);
   font: inherit;
   min-height: 2.75rem;
   padding: 0.65rem 0.75rem;
@@ -89,10 +89,10 @@ h2 {
 .password-toggle,
 .icon-button {
   align-items: center;
-  background: #eef5f0;
-  border: 1px solid #c7d8cd;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
   border-radius: 50%;
-  color: #173527;
+  color: var(--text);
   cursor: pointer;
   display: inline-flex;
   height: 2.4rem;
@@ -108,10 +108,10 @@ h2 {
 }
 
 .error-message {
-  background: #fff1f1;
-  border: 1px solid #f1b8b8;
+  background: var(--danger-soft);
+  border: 1px solid var(--danger-border);
   border-radius: 8px;
-  color: #8b1e1e;
+  color: var(--danger-text);
   margin: 0;
   padding: 0.7rem 0.8rem;
 }
@@ -137,20 +137,20 @@ h2 {
 }
 
 .primary-button {
-  background: #23543b;
-  border: 1px solid #23543b;
-  color: #ffffff;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: var(--accent-contrast);
 }
 
 .secondary-button {
-  background: #eef5f0;
-  border: 1px solid #c7d8cd;
-  color: #173527;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  color: var(--text);
 }
 
 .text-input:focus,
 button:focus-visible {
-  outline: 3px solid #8ed6ff;
+  outline: 3px solid var(--focus);
   outline-offset: 2px;
 }
 

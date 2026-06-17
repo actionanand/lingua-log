@@ -10,14 +10,14 @@
 .preview-header,
 .paste-panel,
 .table-panel {
-  background: #ffffff;
-  border: 1px solid #d9e3dd;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 1rem;
 }
 
 .eyebrow {
-  color: #426554;
+  color: var(--eyebrow);
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0;
@@ -32,25 +32,25 @@ p {
 }
 
 h1 {
-  color: #17251d;
+  color: var(--heading);
   font-size: 2rem;
   line-height: 1.15;
   margin-bottom: 0;
 }
 
 h2 {
-  color: #17251d;
+  color: var(--heading);
   font-size: 1.15rem;
   margin-bottom: 0.25rem;
 }
 
 .table-heading p {
-  color: #596a60;
+  color: var(--text-muted);
   margin-bottom: 0.8rem;
 }
 
 .field-label {
-  color: #263c30;
+  color: var(--text);
   display: inline-block;
   font-size: 0.9rem;
   font-weight: 700;
@@ -58,10 +58,10 @@ h2 {
 }
 
 .paste-area {
-  background: #fbfdfb;
-  border: 1px solid #bfcfc6;
+  background: var(--surface-soft);
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
-  color: #17251d;
+  color: var(--text);
   font: inherit;
   min-height: 10rem;
   padding: 0.7rem 0.8rem;
@@ -71,15 +71,15 @@ h2 {
 
 .paste-area:focus,
 button:focus-visible {
-  outline: 3px solid #8ed6ff;
+  outline: 3px solid var(--focus);
   outline-offset: 2px;
 }
 
 .parse-message {
-  background: #fff7df;
-  border: 1px solid #e3c96d;
+  background: var(--warning-bg);
+  border: 1px solid var(--warning-border);
   border-radius: 8px;
-  color: #5a4300;
+  color: var(--warning-text);
   margin: 0.75rem 0 0;
   padding: 0.75rem;
 }
@@ -96,24 +96,24 @@ table {
 
 th,
 td {
-  border-bottom: 1px solid #d9e3dd;
-  color: #20342a;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
   padding: 0.75rem;
   text-align: left;
   vertical-align: top;
 }
 
 th {
-  background: #eef5f0;
-  color: #173527;
+  background: var(--accent-soft);
+  color: var(--text);
   font-size: 0.9rem;
 }
 
 .secondary-button {
-  background: #eef5f0;
-  border: 1px solid #c7d8cd;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
   border-radius: 8px;
-  color: #173527;
+  color: var(--text);
   cursor: pointer;
   font: inherit;
   font-weight: 700;

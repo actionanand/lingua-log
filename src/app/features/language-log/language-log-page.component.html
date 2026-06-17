@@ -58,7 +58,10 @@
       </div>
     </fieldset>
 
-    <button type="button" class="secondary-button reload-button" (click)="reload()">Reload</button>
+    <button type="button" class="secondary-button reload-button" (click)="reload()">
+      <span class="material-symbols-rounded" aria-hidden="true">refresh</span>
+      Reload
+    </button>
   </section>
 
   @if (rowsResource.isLoading()) {
@@ -84,9 +87,6 @@
         @if (logSearchService.query()) {
           <span>Search: "{{ logSearchService.query() }}".</span>
         }
-        @if (!authService.isLoggedIn()) {
-          <span>Protected rows are hidden.</span>
-        }
       </p>
     </section>
 
@@ -94,12 +94,13 @@
       @for (row of pagedRows(); track row.entry.entryId) {
         <article class="entry-card">
           <header class="entry-card-header">
-            <div>
-              <p class="row-meta">Google Sheet row {{ row.rowNumber }}</p>
-              <h2>{{ row.entry.sourceText }}</h2>
+            <div class="source-main">
+              <p class="row-meta">{{ displayRowNumber(row.rowNumber) }}</p>
+              <h2 class="source-sentence">{{ row.entry.sourceText }}</h2>
               @if (row.entry.sourceTransliteration) {
-                <p class="transliteration">{{ row.entry.sourceTransliteration }}</p>
+                <p class="source-transliteration">{{ row.entry.sourceTransliteration }}</p>
               }
+              <span class="source-language-badge">{{ sourceDisplayLanguage(row.entry) }}</span>
             </div>
 
             @if (authService.isLoggedIn()) {
@@ -110,23 +111,22 @@
             }
           </header>
 
-          <div class="language-grid">
-            @for (block of visibleLanguageBlocks(row.entry); track block.key) {
-              <section
-                class="language-block"
-                [attr.aria-label]="block.role + ' in ' + block.language"
-              >
-                <div class="language-block-header">
-                  <span class="language-name">{{ block.language }}</span>
-                  <span class="role-pill">{{ block.role }}</span>
-                </div>
-                <p class="language-text">{{ block.text }}</p>
-                @if (block.transliteration) {
-                  <p class="language-transliteration">{{ block.transliteration }}</p>
-                }
-              </section>
-            }
-          </div>
+          @let languageBlocks = visibleLanguageBlocks(row.entry);
+          @if (languageBlocks.length > 0) {
+            <div class="language-grid">
+              @for (block of languageBlocks; track block.key) {
+                <section
+                  class="language-block"
+                  [attr.aria-label]="block.role + ' in ' + block.language"
+                >
+                  <div class="language-block-header">
+                    <span class="language-name">{{ block.language }}</span>
+                  </div>
+                  <p class="language-text">{{ block.text }}</p>
+                </section>
+              }
+            </div>
+          }
 
           @if (row.entry.explanationHtml) {
             <section class="explanation" aria-label="Explanation">
@@ -139,12 +139,14 @@
             <section class="resources" aria-label="Resources">
               <h3>Resources</h3>
               <ul>
-                @for (resource of row.entry.resources; track resource) {
+                @for (resource of row.entry.resources; track resource; let index = $index) {
                   <li>
                     @if (resourceHref(resource); as href) {
-                      <a [href]="href" target="_blank" rel="noopener noreferrer">{{ resource }}</a>
+                      <a [href]="href" target="_blank" rel="noopener noreferrer" [title]="resource">
+                        {{ resourceLabel(index) }}
+                      </a>
                     } @else {
-                      <span>{{ resource }}</span>
+                      <span [title]="resource">{{ resourceLabel(index) }}</span>
                     }
                   </li>
                 }
@@ -153,7 +155,8 @@
           }
 
           <footer class="entry-footer">
-            <span>Saved {{ formatDate(row.entry.updatedAt || row.entry.createdAt) }}</span>
+            <span>Created Date: {{ formatDate(row.entry.createdAt) }}</span>
+            <span>Last Updated: {{ formatDate(row.entry.updatedAt || row.entry.createdAt) }}</span>
           </footer>
         </article>
       }
