@@ -12,10 +12,28 @@
 .entry-card,
 .empty-state,
 .loader,
-.result-summary {
+.result-summary,
+.offline-toast {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
+}
+
+.pull-refresh-indicator {
+  align-items: center;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  color: var(--text);
+  display: inline-flex;
+  font-size: 0.86rem;
+  font-weight: 850;
+  gap: 0.3rem;
+  justify-self: center;
+  padding: 0.35rem 0.7rem;
+  position: sticky;
+  top: 0.5rem;
+  z-index: 2;
 }
 
 .hero {
@@ -169,8 +187,18 @@ button:focus-visible {
 
 .loader,
 .empty-state,
-.result-summary {
+.result-summary,
+.offline-toast {
   padding: 1rem;
+}
+
+.offline-toast {
+  align-items: center;
+  box-shadow: 0 12px 34px var(--shadow);
+  display: flex;
+  gap: 0.5rem;
+  justify-self: center;
+  max-width: min(100%, 34rem);
 }
 
 .loader {
@@ -251,6 +279,28 @@ button:focus-visible {
   justify-self: start;
   min-height: 2.15rem;
   padding: 0.35rem 0.6rem;
+}
+
+.card-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-self: start;
+}
+
+.protected-badge {
+  align-items: center;
+  background: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+  border-radius: 999px;
+  color: var(--warning-text);
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 850;
+  gap: 0.2rem;
+  min-height: 2.15rem;
+  padding: 0.3rem 0.55rem;
 }
 
 .language-grid {

@@ -1,4 +1,11 @@
 <section class="log-shell" aria-labelledby="log-title">
+  @if (pullDistance() > 0) {
+    <div class="pull-refresh-indicator" aria-hidden="true">
+      <span class="material-symbols-rounded">keyboard_double_arrow_down</span>
+      {{ pullDistance() >= 72 ? 'Release to reload' : 'Pull to reload' }}
+    </div>
+  }
+
   <header class="hero">
     <div class="hero-copy">
       <p class="eyebrow">Language log</p>
@@ -81,6 +88,13 @@
       <p>Protected rows are hidden until login. Try another language or scope filter.</p>
     </section>
   } @else {
+    @if (sheetService.isOfflineCache()) {
+      <aside class="offline-toast" aria-live="polite">
+        <span class="material-symbols-rounded" aria-hidden="true">cloud_off</span>
+        <span>{{ offlineCacheMessage() }}</span>
+      </aside>
+    }
+
     <section class="result-summary" aria-live="polite">
       <p>
         Showing {{ pagedRows().length }} of {{ filteredRows().length }} visible entries.
@@ -104,10 +118,18 @@
             </div>
 
             @if (authService.isLoggedIn()) {
-              <button type="button" class="edit-button" (click)="openEdit(row)">
-                <span class="material-symbols-rounded" aria-hidden="true">edit</span>
-                Edit
-              </button>
+              <div class="card-actions">
+                @if (row.entry.isProtected) {
+                  <span class="protected-badge">
+                    <span class="material-symbols-rounded" aria-hidden="true">lock</span>
+                    Protected
+                  </span>
+                }
+                <button type="button" class="edit-button" (click)="openEdit(row)">
+                  <span class="material-symbols-rounded" aria-hidden="true">edit</span>
+                  Edit
+                </button>
+              </div>
             }
           </header>
 
