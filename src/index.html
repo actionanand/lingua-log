@@ -5,13 +5,44 @@
     <title>LinguaLog</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
     <meta name="application-name" content="LinguaLog" />
     <meta name="apple-mobile-web-app-title" content="LinguaLog" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="theme-color" content="#f3f7f4" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0f1713" media="(prefers-color-scheme: dark)" />
+    <meta id="app-theme-color" name="theme-color" content="#f3f7f4" />
+    <script>
+      (() => {
+        const lightColor = '#f3f7f4';
+        const darkColor = '#0f1713';
+        const storageKey = 'll.ui.preference.v2';
+        const themeColor = document.querySelector('#app-theme-color');
+        const colorScheme = document.querySelector('meta[name="color-scheme"]');
+        let preference = 'auto';
+
+        try {
+          const storedValue = localStorage.getItem(storageKey);
+          const parsedValue = storedValue ? JSON.parse(storedValue) : {};
+          preference = ['auto', 'light', 'dark'].includes(parsedValue.preference)
+            ? parsedValue.preference
+            : 'auto';
+        } catch {
+          preference = 'auto';
+        }
+
+        const isDark =
+          preference === 'dark' ||
+          (preference === 'auto' &&
+            window.matchMedia &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+        document.documentElement.dataset.theme = preference;
+        document.documentElement.style.backgroundColor = isDark ? darkColor : lightColor;
+        themeColor?.setAttribute('content', isDark ? darkColor : lightColor);
+        colorScheme?.setAttribute('content', isDark ? 'dark light' : 'light dark');
+      })();
+    </script>
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link
       rel="stylesheet"
