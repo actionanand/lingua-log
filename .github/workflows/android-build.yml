@@ -52,7 +52,7 @@ jobs:
         run: npm install --no-save --package-lock=false @capacitor/cli @capacitor/core @capacitor/android
 
       - name: Install image tools
-        run: sudo apt-get update && sudo apt-get install -y librsvg2-bin
+        run: sudo apt-get update && sudo apt-get install -y imagemagick
 
       - name: Generate Android project
         run: npx cap add android
@@ -78,7 +78,7 @@ jobs:
       - name: Inject app icon
         run: |
           mkdir -p releases
-          ICON_SRC="public/globe.svg"
+          ICON_SRC="public/lingua-log.png"
           rm -rf android/app/src/main/res/mipmap-anydpi-v26
           declare -A SIZES=(
             ["mipmap-mdpi"]=48
@@ -90,14 +90,14 @@ jobs:
           for DIR in "${!SIZES[@]}"; do
             SIZE=${SIZES[$DIR]}
             mkdir -p "android/app/src/main/res/$DIR"
-            rsvg-convert -w "$SIZE" -h "$SIZE" "$ICON_SRC" \
-              -o "android/app/src/main/res/$DIR/ic_launcher.png"
-            rsvg-convert -w "$SIZE" -h "$SIZE" "$ICON_SRC" \
-              -o "android/app/src/main/res/$DIR/ic_launcher_round.png"
-            rsvg-convert -w "$SIZE" -h "$SIZE" "$ICON_SRC" \
-              -o "android/app/src/main/res/$DIR/ic_launcher_foreground.png"
+            convert "$ICON_SRC" -resize "${SIZE}x${SIZE}" \
+              "android/app/src/main/res/$DIR/ic_launcher.png"
+            convert "$ICON_SRC" -resize "${SIZE}x${SIZE}" \
+              "android/app/src/main/res/$DIR/ic_launcher_round.png"
+            convert "$ICON_SRC" -resize "${SIZE}x${SIZE}" \
+              "android/app/src/main/res/$DIR/ic_launcher_foreground.png"
           done
-          rsvg-convert -w 512 -h 512 "$ICON_SRC" -o releases/playstore-icon.png
+          convert "$ICON_SRC" -resize 512x512 releases/playstore-icon.png
 
       - name: Auto-bump Android version code
         if: github.ref == 'refs/heads/main-android'
@@ -163,13 +163,14 @@ jobs:
             --ks-key-alias "${KEY_ALIAS}" \
             --key-pass "env:KEY_PASSWORD" \
             "$ALIGNED_APK"
+          echo "::notice title=Signed APK produced::Signed APK produced at $ALIGNED_APK"
 
       - name: Copy unsigned APK
         if: steps.keystore.outputs.available != 'true' || steps.sign_apk.outcome == 'failure'
         run: |
           UNSIGNED_APK=$(find android/app/build -name "*-release-unsigned.apk" | head -1)
           cp "$UNSIGNED_APK" "android/app/build/outputs/apk/release/${RELEASE_BASENAME}.apk"
-          echo "::warning title=Unsigned APK::Keystore secrets are missing or signing failed. APK is unsigned."
+          echo "::warning title=Unsigned APK produced::Unsigned APK produced at android/app/build/outputs/apk/release/${RELEASE_BASENAME}.apk because keystore secrets are missing or signing failed."
 
       - name: Sign AAB
         id: sign_aab
@@ -194,13 +195,14 @@ jobs:
             -signedjar "$SIGNED_AAB" \
             "$UNSIGNED_AAB" \
             "${KEY_ALIAS}"
+          echo "::notice title=Signed AAB produced::Signed AAB produced at $SIGNED_AAB. A self-signed certificate warning from jarsigner is expected for a private release keystore."
 
       - name: Copy unsigned AAB
         if: steps.keystore.outputs.available != 'true' || steps.sign_aab.outcome == 'failure'
         run: |
           UNSIGNED_AAB=$(find android/app/build -name "*-release.aab" | head -1)
           cp "$UNSIGNED_AAB" "android/app/build/outputs/bundle/release/${RELEASE_BASENAME}.aab"
-          echo "::warning title=Unsigned AAB::Keystore secrets are missing or signing failed. AAB is unsigned."
+          echo "::warning title=Unsigned AAB produced::Unsigned AAB produced at android/app/build/outputs/bundle/release/${RELEASE_BASENAME}.aab because keystore secrets are missing or signing failed."
 
       - name: Commit release files
         if: github.ref == 'refs/heads/main-android'
