@@ -15,20 +15,21 @@ This project uses PKCS12 format for Android release signing.
 | `scripts/generate-keystore.mjs`       | Generates a PKCS12 release keystore                            |
 | `scripts/detect-keystore-format.mjs`  | Checks whether a keystore is PKCS12                            |
 | `scripts/patch-android-pip.mjs`       | Applies LinguaLog native Android shell polish in CI            |
-| `inject-env.js`                       | Injects GitHub secrets into `src/environments/environment.ts`  |
+| `scripts/inject-env.js`               | Injects GitHub secrets into `src/environments/environment.ts`  |
 
 ## Build Flow
 
 1. Push to `main-android`.
 2. GitHub Actions installs Node, Java, Android SDK, and project dependencies.
-3. `inject-env.js` injects production secrets.
+3. `scripts/inject-env.js` injects production secrets.
 4. Angular builds to `dist/lingua-log/browser`.
 5. Capacitor generates the Android project.
 6. `scripts/patch-android-pip.mjs` applies native Android shell polish and Internet permission.
 7. Capacitor syncs web assets.
-8. Gradle builds release APK and AAB.
-9. If keystore secrets are present, CI signs both files.
-10. Artifacts are uploaded, and release files are committed to `releases/` on `main-android`.
+8. Android launcher icons are generated from `public/lingua-log.png`.
+9. Gradle builds release APK and AAB.
+10. If keystore secrets are present, CI signs both files.
+11. Artifacts are uploaded, and release files are committed to `releases/` on `main-android`.
 
 ## GitHub Secrets
 
@@ -37,14 +38,25 @@ Add these in GitHub: Settings -> Secrets and variables -> Actions.
 | Secret              | Required            | Purpose                                                                                                          |
 | ------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | `PASSWORD_HASH`     | Yes                 | SHA1 hash used by client-side login                                                                              |
-| `GOOGLE_SHEET_ID`   | Optional            | Overrides the sheet ID in `environment.ts`                                                                       |
-| `SHEET_GID`         | Optional            | Overrides the sheet tab GID in `environment.ts`                                                                  |
 | `KEYSTORE_BASE64`   | For signed builds   | Base64 encoded PKCS12 release keystore                                                                           |
 | `KEYSTORE_PASSWORD` | For signed builds   | PKCS12 keystore password                                                                                         |
 | `KEY_ALIAS`         | For signed builds   | Alias inside the keystore                                                                                        |
 | `KEY_PASSWORD`      | Optional for PKCS12 | Set the same value as `KEYSTORE_PASSWORD` for clarity; required only for legacy JKS with a separate key password |
 
 If signing secrets are missing, CI still creates unsigned APK/AAB artifacts for testing.
+
+The workflow prints a clear artifact status message:
+
+- `Signed APK produced`
+- `Unsigned APK produced`
+- `Signed AAB produced`
+- `Unsigned AAB produced`
+
+For AAB signing, `jarsigner` may print `The signer's certificate is self-signed.` This is expected for a private release keystore. If the log says `jar signed.` and the workflow prints `Signed AAB produced`, the AAB is signed.
+
+## App Icon
+
+Android launcher icons are generated from `public/lingua-log.png`. This keeps the app name font exactly as designed, avoiding SVG font substitution during CI image conversion.
 
 ## PKCS12 Keystore
 
