@@ -5,10 +5,48 @@
     <title>LinguaLog</title>
     <base href="/lingua-log/">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="application-name" content="LinguaLog">
+    <meta name="apple-mobile-web-app-title" content="LinguaLog">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta id="app-theme-color" name="theme-color" content="#f3f7f4">
+    <script>
+      (() => {
+        const lightColor = '#f3f7f4';
+        const darkColor = '#0f1713';
+        const storageKey = 'll.ui.preference.v2';
+        const themeColor = document.querySelector('#app-theme-color');
+        const colorScheme = document.querySelector('meta[name="color-scheme"]');
+        let preference = 'auto';
+
+        try {
+          const storedValue = localStorage.getItem(storageKey);
+          const parsedValue = storedValue ? JSON.parse(storedValue) : {};
+          preference = ['auto', 'light', 'dark'].includes(parsedValue.preference)
+            ? parsedValue.preference
+            : 'auto';
+        } catch {
+          preference = 'auto';
+        }
+
+        const isDark =
+          preference === 'dark' ||
+          (preference === 'auto' &&
+            window.matchMedia &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+        document.documentElement.dataset.theme = preference;
+        document.documentElement.style.backgroundColor = isDark ? darkColor : lightColor;
+        themeColor?.setAttribute('content', isDark ? darkColor : lightColor);
+        colorScheme?.setAttribute('content', isDark ? 'dark light' : 'light dark');
+      })();
+    </script>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <style>@font-face{font-family:'Material Symbols Rounded';font-style:normal;font-weight:500;src:url(https://fonts.gstatic.com/s/materialsymbolsrounded/v349/syl0-zNym6YjUruM-QrEh7-nyTnjDwKNJ_190FjpZIvDmUSVOK7BDB_Qb9vUSzq3wzLK-P0J-V_Zs-QtQth3-jOcbTCVpeRL2w5rwZu2rLWlXxc.woff2) format('woff2');}.material-symbols-rounded{font-family:'Material Symbols Rounded';font-weight:normal;font-style:normal;font-size:24px;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;white-space:nowrap;word-wrap:normal;direction:ltr;-webkit-font-feature-settings:'liga';-webkit-font-smoothing:antialiased;}</style>
+    <style>@font-face{font-family:'Material Symbols Rounded';font-style:normal;font-weight:500;src:url(https://fonts.gstatic.com/s/materialsymbolsrounded/v352/syl0-zNym6YjUruM-QrEh7-nyTnjDwKNJ_190FjpZIvDmUSVOK7BDB_Qb9vUSzq3wzLK-P0J-V_Zs-QtQth3-jOcbTCVpeRL2w5rwZu2rLWlXxc.woff2) format('woff2');}.material-symbols-rounded{font-family:'Material Symbols Rounded';font-weight:normal;font-style:normal;font-size:24px;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;white-space:nowrap;word-wrap:normal;direction:ltr;-webkit-font-feature-settings:'liga';-webkit-font-smoothing:antialiased;}</style>
   <style>*{box-sizing:border-box}:root{color-scheme:light;--app-bg:#f3f7f4;--surface:#ffffff;--surface-soft:#fbfdfb;--surface-muted:#f7faf8;--surface-raised:#ffffff;--border:#d9e3dd;--border-strong:#bfcfc6;--text:#17251d;--text-muted:#4e6258;--heading:#101f18;--eyebrow:#426554;--accent:#23543b;--accent-hover:#1c4731;--accent-contrast:#ffffff;--accent-soft:#e5f2ea;--accent-soft-hover:#e3f0e8;--accent-border:#c7d8cd;--focus:#8ed6ff;--link:#1d5d8f;--warning-bg:#fff7df;--warning-border:#e3c96d;--warning-text:#5a4300;--danger-soft:#fff4ed;--danger-border:#efc6ad;--danger-text:#703213;--backdrop:rgb(9 20 14 / 62%);--shadow:rgb(9 20 14 / 18%);--shadow-strong:rgb(9 20 14 / 32%)}html{background:var(--app-bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif}body{background:var(--app-bg);margin:0;min-width:320px}</style><link rel="stylesheet" href="styles-2VTYB43I.css" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="styles-2VTYB43I.css"></noscript></head>
   <body>
     <app-root></app-root>
-  <script src="main-HDWOMQ4M.js" type="module"></script></body>
+  <script src="main-DUXJ4QRG.js" type="module"></script></body>
 </html>
