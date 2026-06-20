@@ -38,6 +38,7 @@
   <div id="primary-menu" class="menu-panel" [class.open]="isMenuOpen()">
     <nav class="app-nav" aria-label="Primary navigation">
       <a routerLink="/logs" routerLinkActive="active-link" (click)="closeMenu()">Logs</a>
+      <a routerLink="/sheet-data" routerLinkActive="active-link" (click)="closeMenu()">Overview</a>
       @if (authService.isLoggedIn()) {
         <a routerLink="/converter" routerLinkActive="active-link" (click)="closeMenu()"
           >Converter</a

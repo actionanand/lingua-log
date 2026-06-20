@@ -15,6 +15,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'sheet-data',
+    loadComponent: () =>
+      import('./features/sheet-data/sheet-data-page.component').then(
+        (m) => m.SheetDataPageComponent,
+      ),
+  },
+  {
     path: 'converter',
     canMatch: [loggedInGuard],
     loadComponent: () =>

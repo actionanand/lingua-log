@@ -414,7 +414,17 @@ button:focus-visible {
   border-color: transparent;
 }
 
-.table-theme-soft .entry-table-builder td {
+.table-theme-soft .entry-table-builder tr:first-child td {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+  color: var(--heading);
+}
+
+.table-theme-soft .entry-table-builder tr:not(:first-child) td {
+  background: var(--surface-soft);
+}
+
+.table-theme-soft .entry-table-builder tr:nth-child(even):not(:first-child) td {
   background: var(--surface-muted);
 }
 
