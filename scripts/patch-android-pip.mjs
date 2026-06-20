@@ -8,7 +8,8 @@ const manifestPath = join('android', 'app', 'src', 'main', 'AndroidManifest.xml'
 const valuesDir = join('android', 'app', 'src', 'main', 'res', 'values');
 const colorsPath = join(valuesDir, 'colors.xml');
 const stylesPath = join(valuesDir, 'styles.xml');
-const systemBarColor = '#0F1713';
+const lightShellColor = '#F3F7F4';
+const darkShellColor = '#0F1713';
 
 mkdirSync(javaDir, { recursive: true });
 mkdirSync(valuesDir, { recursive: true });
@@ -23,40 +24,81 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
+import android.webkit.JavascriptInterface;
 
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
+  private static final int APP_LIGHT_COLOR = Color.rgb(243, 247, 244);
   private static final int APP_DARK_COLOR = Color.rgb(15, 23, 19);
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
-    paintSystemBars();
+    requestWindowFeature(Window.FEATURE_NO_TITLE);
+    applySystemBars(false);
     super.onCreate(savedInstanceState);
-    paintSystemBars();
+    hideNativeTitleBar();
+    applySystemBars(false);
+
+    if (getBridge() != null && getBridge().getWebView() != null) {
+      getBridge().getWebView().addJavascriptInterface(new ThemeBridge(), "LinguaLogAndroid");
+    }
   }
 
-  private void paintSystemBars() {
-    Window window = getWindow();
-    window.setBackgroundDrawable(new ColorDrawable(APP_DARK_COLOR));
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      window.getDecorView().setSystemUiVisibility(0);
+  private void hideNativeTitleBar() {
+    if (getSupportActionBar() != null) {
+      getSupportActionBar().hide();
     }
+  }
+
+  private void applySystemBars(boolean darkTheme) {
+    Window window = getWindow();
+    int shellColor = darkTheme ? APP_DARK_COLOR : APP_LIGHT_COLOR;
+    window.setBackgroundDrawable(new ColorDrawable(shellColor));
+    window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+
+    View decorView = window.getDecorView();
+    int systemUiVisibility = decorView.getSystemUiVisibility();
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-      window.setStatusBarColor(APP_DARK_COLOR);
-      window.setNavigationBarColor(APP_DARK_COLOR);
+      window.setStatusBarColor(shellColor);
+      window.setNavigationBarColor(shellColor);
       View content = window.findViewById(android.R.id.content);
 
       if (content != null) {
-        content.setBackgroundColor(APP_DARK_COLOR);
+        content.setBackgroundColor(shellColor);
       }
     }
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      if (darkTheme) {
+        systemUiVisibility &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+      } else {
+        systemUiVisibility |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+      }
+    }
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      if (darkTheme) {
+        systemUiVisibility &= ~View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+      } else {
+        systemUiVisibility |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+      }
+    }
+
+    decorView.setSystemUiVisibility(systemUiVisibility);
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
       window.setStatusBarContrastEnforced(false);
       window.setNavigationBarContrastEnforced(false);
+    }
+  }
+
+  private class ThemeBridge {
+    @JavascriptInterface
+    public void setTheme(String theme) {
+      runOnUiThread(() -> applySystemBars("dark".equals(theme)));
     }
   }
 }
@@ -75,33 +117,31 @@ if (!/android\.permission\.INTERNET/.test(manifest)) {
 writeFileSync(manifestPath, manifest);
 
 let colors = readOptionalFile(colorsPath);
-colors = ensureResourceColor(colors, 'lingualog_system_bar', systemBarColor);
+colors = ensureResourceColor(colors, 'lingualog_shell_light', lightShellColor);
+colors = ensureResourceColor(colors, 'lingualog_shell_dark', darkShellColor);
 writeFileSync(colorsPath, colors);
 
 let styles = readOptionalFile(stylesPath);
-styles = ensureStyleItems(styles, 'AppTheme', [
-  ['android:windowBackground', '@color/lingualog_system_bar'],
-  ['android:statusBarColor', '@color/lingualog_system_bar'],
-  ['android:navigationBarColor', '@color/lingualog_system_bar'],
-  ['android:windowLightStatusBar', 'false'],
-  ['android:windowLightNavigationBar', 'false'],
+const shellStyleItems = [
+  ['windowActionBar', 'false'],
+  ['windowNoTitle', 'true'],
+  ['android:windowActionBar', 'false'],
+  ['android:windowNoTitle', 'true'],
+  ['android:windowBackground', '@color/lingualog_shell_light'],
+  ['android:statusBarColor', '@color/lingualog_shell_light'],
+  ['android:navigationBarColor', '@color/lingualog_shell_light'],
+  ['android:windowLightStatusBar', 'true'],
+  ['android:windowLightNavigationBar', 'true'],
   ['android:windowOptOutEdgeToEdgeEnforcement', 'true'],
-]);
-styles = ensureStyleItems(styles, 'AppTheme.NoActionBar', [
-  ['android:windowBackground', '@color/lingualog_system_bar'],
-  ['android:statusBarColor', '@color/lingualog_system_bar'],
-  ['android:navigationBarColor', '@color/lingualog_system_bar'],
-  ['android:windowLightStatusBar', 'false'],
-  ['android:windowLightNavigationBar', 'false'],
-  ['android:windowOptOutEdgeToEdgeEnforcement', 'true'],
-]);
+];
+
+styles = ensureStyleItems(styles, 'AppTheme', shellStyleItems);
+styles = ensureStyleItems(styles, 'AppTheme.NoActionBar', shellStyleItems);
 styles = ensureStyleItems(styles, 'AppTheme.NoActionBarLaunch', [
-  ['android:windowBackground', '@color/lingualog_system_bar'],
-  ['android:statusBarColor', '@color/lingualog_system_bar'],
-  ['android:navigationBarColor', '@color/lingualog_system_bar'],
-  ['android:windowLightStatusBar', 'false'],
-  ['android:windowLightNavigationBar', 'false'],
-  ['android:windowOptOutEdgeToEdgeEnforcement', 'true'],
+  ...shellStyleItems,
+  ['android:background', '@color/lingualog_shell_light'],
+  ['windowSplashScreenBackground', '@color/lingualog_shell_light'],
+  ['postSplashScreenTheme', '@style/AppTheme.NoActionBar'],
 ]);
 writeFileSync(stylesPath, styles);
 
