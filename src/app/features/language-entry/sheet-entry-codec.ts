@@ -32,21 +32,56 @@ export const sheetColumns = [
   'OtherLanguage',
   'Other',
   'ExplanationHtml',
+  'TableData',
+  'Resource1Label',
   'Resource1',
+  'Resource2Label',
   'Resource2',
 ] as const;
 
 export type SheetColumn = (typeof sheetColumns)[number];
-type LegacySheetColumn = Exclude<SheetColumn, 'Protected'>;
 
-const legacySheetColumns = sheetColumns.filter(
-  (column): column is LegacySheetColumn => column !== 'Protected',
+const resourceLabelColumns = ['Resource1Label', 'Resource2Label'] as const;
+const protectedColumnsWithoutResourceLabels = sheetColumns.filter(
+  (column) => !resourceLabelColumns.includes(column as (typeof resourceLabelColumns)[number]),
+);
+const protectedColumnsWithoutTableDataAndResourceLabels = sheetColumns.filter(
+  (column) =>
+    column !== 'TableData' &&
+    !resourceLabelColumns.includes(column as (typeof resourceLabelColumns)[number]),
+);
+const unprotectedColumnsWithoutTableDataAndResourceLabels = sheetColumns.filter(
+  (column) =>
+    column !== 'Protected' &&
+    column !== 'TableData' &&
+    !resourceLabelColumns.includes(column as (typeof resourceLabelColumns)[number]),
+);
+const unprotectedColumnsWithTableData = sheetColumns.filter((column) => column !== 'Protected');
+const unprotectedColumnsWithTableDataWithoutResourceLabels = sheetColumns.filter(
+  (column) =>
+    column !== 'Protected' &&
+    !resourceLabelColumns.includes(column as (typeof resourceLabelColumns)[number]),
 );
 
 export interface TranslationEntry {
   language: LanguageOption;
   languageOther: string;
   text: string;
+}
+
+export interface ResourceEntry {
+  label: string;
+  value: string;
+}
+
+export const tableThemeOptions = ['plain', 'soft', 'grid'] as const;
+export type TableTheme = (typeof tableThemeOptions)[number];
+
+export interface EntryTable {
+  theme: TableTheme;
+  boldHeader: boolean;
+  boldFirstColumn: boolean;
+  rows: string[][];
 }
 
 export interface LinguaLogEntry {
@@ -60,7 +95,8 @@ export interface LinguaLogEntry {
   sourceTransliteration: string;
   translations: TranslationEntry[];
   explanationHtml: string;
-  resources: string[];
+  table: EntryTable | null;
+  resources: ResourceEntry[];
 }
 
 type SheetRow = Record<SheetColumn, string>;
@@ -79,7 +115,8 @@ export function createEmptyEntry(): LinguaLogEntry {
     sourceTransliteration: '',
     translations: [{ language: 'English', languageOther: '', text: '' }],
     explanationHtml: '',
-    resources: [''],
+    table: null,
+    resources: [{ label: '', value: '' }],
   };
 }
 
@@ -109,9 +146,12 @@ export function toSheetCells(entry: LinguaLogEntry): string[] {
   row.SourceOtherLanguage = entry.sourceLanguage === 'Other' ? entry.sourceLanguageOther : '';
   row.SourceText = entry.sourceText;
   row.SourceTransliteration = entry.sourceTransliteration;
-  row.ExplanationHtml = entry.explanationHtml;
-  row.Resource1 = entry.resources[0] ?? '';
-  row.Resource2 = entry.resources[1] ?? '';
+  row.ExplanationHtml = minifyHtml(entry.explanationHtml);
+  row.TableData = encodeTableData(entry.table);
+  row.Resource1Label = entry.resources[0]?.label ?? '';
+  row.Resource1 = entry.resources[0]?.value ?? '';
+  row.Resource2Label = entry.resources[1]?.label ?? '';
+  row.Resource2 = entry.resources[1]?.value ?? '';
 
   setLanguageText(row, entry.sourceLanguage, entry.sourceText, entry.sourceLanguageOther);
 
@@ -182,8 +222,12 @@ export function entryFromSheetCells(
     sourceText,
     sourceTransliteration: row.SourceTransliteration,
     translations,
-    explanationHtml: row.ExplanationHtml,
-    resources: [row.Resource1, row.Resource2].filter((resource) => resource.trim().length > 0),
+    explanationHtml: minifyHtml(row.ExplanationHtml),
+    table: decodeTableData(row.TableData),
+    resources: [
+      createResourceEntry(row.Resource1Label, row.Resource1),
+      createResourceEntry(row.Resource2Label, row.Resource2),
+    ].filter((resource) => resource.label.length > 0 || resource.value.length > 0),
   };
 }
 
@@ -206,17 +250,58 @@ function findSingleHeaderlessRecord(text: string, rows: string[][]): string[] | 
 
 function inferHeadersForRow(row: string[]): readonly string[] {
   if (isProtectedValue(row[3]) || languageOptions.includes(row[4] as LanguageOption)) {
+    if (row.length === protectedColumnsWithoutResourceLabels.length) {
+      return protectedColumnsWithoutResourceLabels;
+    }
+
+    if (row.length === protectedColumnsWithoutTableDataAndResourceLabels.length) {
+      return protectedColumnsWithoutTableDataAndResourceLabels;
+    }
+
     return sheetColumns;
   }
 
-  if (
-    languageOptions.includes(row[3] as LanguageOption) ||
-    row.length === legacySheetColumns.length
-  ) {
-    return legacySheetColumns;
+  if (languageOptions.includes(row[3] as LanguageOption)) {
+    if (looksLikeUnprotectedRowWithTableData(row)) {
+      if (row.length === unprotectedColumnsWithTableDataWithoutResourceLabels.length) {
+        return unprotectedColumnsWithTableDataWithoutResourceLabels;
+      }
+
+      return unprotectedColumnsWithTableData;
+    }
+
+    return unprotectedColumnsWithoutTableDataAndResourceLabels;
   }
 
   return sheetColumns;
+}
+
+function looksLikeUnprotectedRowWithTableData(row: string[]): boolean {
+  const tableDataIndex = unprotectedColumnsWithTableData.indexOf('TableData');
+
+  return (
+    row.length === unprotectedColumnsWithTableData.length ||
+    row.length === unprotectedColumnsWithTableDataWithoutResourceLabels.length ||
+    looksLikeTableData(row[tableDataIndex]) ||
+    (isBlank(row[tableDataIndex] ?? '') && !isBlank(row[tableDataIndex + 1] ?? ''))
+  );
+}
+
+function looksLikeTableData(value: string | undefined): boolean {
+  const trimmedValue = value?.trim() ?? '';
+
+  return trimmedValue.startsWith('{"v":') || trimmedValue.startsWith('{"r":');
+}
+
+function createResourceEntry(label: string, value: string): ResourceEntry {
+  return {
+    label: label.trim(),
+    value: value.trim(),
+  };
+}
+
+function minifyHtml(value: string): string {
+  return value.replace(/\r?\n\s*/g, '').trim();
 }
 
 function normalizeCellsForHeaders(
@@ -234,6 +319,94 @@ function normalizeCellsForHeaders(
   }
 
   return [...cells.slice(0, explanationIndex), cells.slice(explanationIndex).join('\n')];
+}
+
+function encodeTableData(table: EntryTable | null): string {
+  if (!table || table.rows.length === 0 || table.rows.every((row) => row.every(isBlank))) {
+    return '';
+  }
+
+  const normalizedRows = trimEmptyTrailingRows(table.rows)
+    .map((row) => trimEmptyTrailingCells(row).slice(0, 7))
+    .slice(0, 13);
+
+  if (normalizedRows.length === 0 || normalizedRows.every((row) => row.every(isBlank))) {
+    return '';
+  }
+
+  return JSON.stringify({
+    v: 1,
+    t: table.theme,
+    h: table.boldHeader ? 1 : 0,
+    c: table.boldFirstColumn ? 1 : 0,
+    r: normalizedRows,
+  });
+}
+
+function decodeTableData(value: string): EntryTable | null {
+  if (!value.trim()) {
+    return null;
+  }
+
+  try {
+    const parsedValue = JSON.parse(value) as {
+      t?: unknown;
+      h?: unknown;
+      c?: unknown;
+      r?: unknown;
+    };
+
+    if (!Array.isArray(parsedValue.r)) {
+      return null;
+    }
+
+    const rows = parsedValue.r
+      .filter((row): row is unknown[] => Array.isArray(row))
+      .map((row) => row.map((cell) => String(cell ?? '')).slice(0, 7))
+      .slice(0, 13);
+    const normalizedRows = trimEmptyTrailingRows(rows);
+
+    if (normalizedRows.length === 0) {
+      return null;
+    }
+
+    return {
+      theme: parseTableTheme(parsedValue.t),
+      boldHeader: parsedValue.h === 1 || parsedValue.h === true,
+      boldFirstColumn: parsedValue.c === 1 || parsedValue.c === true,
+      rows: normalizedRows,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function parseTableTheme(value: unknown): TableTheme {
+  return tableThemeOptions.find((theme) => theme === value) ?? 'plain';
+}
+
+function trimEmptyTrailingRows(rows: readonly string[][]): string[][] {
+  const nextRows = rows.map((row) => [...row]);
+
+  while (nextRows.length > 0 && (nextRows.at(-1) ?? []).every(isBlank)) {
+    nextRows.pop();
+  }
+
+  return nextRows;
+}
+
+function trimEmptyTrailingCells(row: readonly string[]): string[] {
+  const nextRow = [...row];
+
+  while (nextRow.length > 1 && isBlank(nextRow.at(-1) ?? '')) {
+    nextRow.pop();
+  }
+
+  return nextRow;
+}
+
+function isBlank(value: string): boolean {
+  return value.trim().length === 0;
 }
 
 function foldSingleHeaderlessRecord(rows: string[][]): string[] | null {

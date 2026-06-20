@@ -340,6 +340,7 @@ button:focus-visible {
 }
 
 .explanation,
+.entry-table-section,
 .resources {
   border-top: 1px solid var(--border);
   display: grid;
@@ -348,6 +349,7 @@ button:focus-visible {
 }
 
 .explanation h3,
+.entry-table-section h3,
 .resources h3 {
   color: var(--text);
   font-size: 0.9rem;
@@ -371,6 +373,74 @@ button:focus-visible {
 .explanation li ul,
 .explanation li ol {
   margin: 0.3rem 0;
+}
+
+.entry-table-wrap {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.entry-table {
+  border-collapse: collapse;
+  min-width: min(38rem, 100%);
+  width: 100%;
+}
+
+.entry-table td {
+  border: 1px solid var(--border);
+  color: var(--text);
+  line-height: 1.45;
+  min-width: 7rem;
+  padding: 0.55rem 0.65rem;
+  vertical-align: top;
+  white-space: pre-wrap;
+}
+
+.entry-table .bold-cell {
+  color: var(--heading);
+  font-weight: 850;
+}
+
+.entry-table span[style*='background-color'] {
+  border-radius: 0.2rem;
+  padding: 0.02rem 0.12rem;
+}
+
+.table-theme-plain {
+  background: var(--surface);
+}
+
+.table-theme-plain .entry-table td {
+  background: var(--surface);
+  border-color: transparent;
+  border-bottom-color: var(--border);
+}
+
+.table-theme-soft {
+  background: var(--surface-soft);
+}
+
+.table-theme-soft .entry-table td {
+  background: var(--surface-soft);
+}
+
+.table-theme-soft .entry-table tr:first-child td {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+}
+
+.table-theme-grid {
+  border-color: var(--border-strong);
+}
+
+.table-theme-grid .entry-table td {
+  background: color-mix(in srgb, var(--surface-soft) 70%, var(--surface) 30%);
+  border-color: var(--border-strong);
+}
+
+.table-theme-grid .entry-table tr:nth-child(even) td {
+  background: var(--surface);
 }
 
 .resources ul {

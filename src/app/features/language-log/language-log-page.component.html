@@ -157,6 +157,36 @@
             </section>
           }
 
+          @if (row.entry.table; as entryTable) {
+            <section class="entry-table-section" aria-label="Table notes">
+              <h3>Table</h3>
+              <div
+                class="entry-table-wrap"
+                [class.table-theme-plain]="entryTable.theme === 'plain'"
+                [class.table-theme-soft]="entryTable.theme === 'soft'"
+                [class.table-theme-grid]="entryTable.theme === 'grid'"
+              >
+                <table class="entry-table">
+                  <tbody>
+                    @for (tableRow of entryTable.rows; track $index; let rowIndex = $index) {
+                      <tr>
+                        @for (cell of tableRow; track $index; let columnIndex = $index) {
+                          <td
+                            [class.bold-cell]="
+                              (entryTable.boldHeader && rowIndex === 0) ||
+                              (entryTable.boldFirstColumn && columnIndex === 0)
+                            "
+                            [innerHTML]="cell | safeExplanationHtml"
+                          ></td>
+                        }
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          }
+
           @if (row.entry.resources.length > 0) {
             <section class="resources" aria-label="Resources">
               <h3>Resources</h3>
@@ -164,11 +194,16 @@
                 @for (resource of row.entry.resources; track resource; let index = $index) {
                   <li>
                     @if (resourceHref(resource); as href) {
-                      <a [href]="href" target="_blank" rel="noopener noreferrer" [title]="resource">
-                        {{ resourceLabel(index) }}
+                      <a
+                        [href]="href"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        [title]="resource.value"
+                      >
+                        {{ resourceLabel(resource, index) }}
                       </a>
                     } @else {
-                      <span [title]="resource">{{ resourceLabel(index) }}</span>
+                      <span [title]="resource.value">{{ resourceLabel(resource, index) }}</span>
                     }
                   </li>
                 }
