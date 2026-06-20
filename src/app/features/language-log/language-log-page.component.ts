@@ -12,9 +12,9 @@ import { AuthService } from '../../core/auth.service';
 import { LogSearchService } from '../../core/log-search.service';
 import { EntryEditorComponent } from '../language-entry/entry-editor.component';
 import {
+  EntryTable,
   LanguageOption,
   LinguaLogEntry,
-  ResourceEntry,
   languageOptions,
 } from '../language-entry/sheet-entry-codec';
 import { LanguageLogSheetRow, LanguageLogSheetService } from './language-log-sheet.service';
@@ -196,8 +196,8 @@ export class LanguageLogPageComponent {
     }
   }
 
-  protected resourceHref(resource: ResourceEntry): string {
-    const trimmedResource = resource.value.trim();
+  protected resourceHref(resource: string): string {
+    const trimmedResource = resource.trim();
 
     if (!trimmedResource) {
       return '';
@@ -214,8 +214,12 @@ export class LanguageLogPageComponent {
     return '';
   }
 
-  protected resourceLabel(resource: ResourceEntry, index: number): string {
-    return resource.label || `Resource ${index + 1}`;
+  protected resourceLabel(index: number): string {
+    return `Resource ${index + 1}`;
+  }
+
+  protected isBoldTableCell(table: EntryTable, rowIndex: number, columnIndex: number): boolean {
+    return (table.boldHeader && rowIndex === 0) || (table.boldFirstColumn && columnIndex === 0);
   }
 
   protected displayRowNumber(rowNumber: number): number {
@@ -291,8 +295,8 @@ export class LanguageLogPageComponent {
       entry.sourceText,
       entry.sourceTransliteration,
       htmlToText(entry.explanationHtml),
-      tableToText(entry.table?.rows ?? []),
-      ...entry.resources.flatMap((resource) => [resource.label, resource.value]),
+      tableToText(entry.table),
+      ...entry.resources,
       ...entry.translations.flatMap((translation) => [
         translation.language,
         translation.languageOther,
@@ -306,18 +310,15 @@ export class LanguageLogPageComponent {
   }
 }
 
+function tableToText(table: EntryTable | null): string {
+  return table?.rows.map((row) => row.map(htmlToText).join(' ')).join(' ') ?? '';
+}
+
 function htmlToText(value: string): string {
   const template = document.createElement('template');
   template.innerHTML = value;
 
   return template.content.textContent ?? '';
-}
-
-function tableToText(rows: readonly string[][]): string {
-  return rows
-    .flat()
-    .map((cell) => htmlToText(cell))
-    .join(' ');
 }
 
 function isNativeAndroid(): boolean {

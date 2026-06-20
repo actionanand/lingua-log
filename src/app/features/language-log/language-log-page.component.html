@@ -157,25 +157,22 @@
             </section>
           }
 
-          @if (row.entry.table; as entryTable) {
-            <section class="entry-table-section" aria-label="Table notes">
+          @if (row.entry.table; as table) {
+            <section class="entry-table-section" aria-label="Table">
               <h3>Table</h3>
               <div
                 class="entry-table-wrap"
-                [class.table-theme-plain]="entryTable.theme === 'plain'"
-                [class.table-theme-soft]="entryTable.theme === 'soft'"
-                [class.table-theme-grid]="entryTable.theme === 'grid'"
+                [class.table-theme-plain]="table.theme === 'plain'"
+                [class.table-theme-soft]="table.theme === 'soft'"
+                [class.table-theme-grid]="table.theme === 'grid'"
               >
-                <table class="entry-table">
+                <table class="entry-table-display">
                   <tbody>
-                    @for (tableRow of entryTable.rows; track $index; let rowIndex = $index) {
+                    @for (tableRow of table.rows; track $index; let rowIndex = $index) {
                       <tr>
                         @for (cell of tableRow; track $index; let columnIndex = $index) {
                           <td
-                            [class.bold-cell]="
-                              (entryTable.boldHeader && rowIndex === 0) ||
-                              (entryTable.boldFirstColumn && columnIndex === 0)
-                            "
+                            [class.bold-cell]="isBoldTableCell(table, rowIndex, columnIndex)"
                             [innerHTML]="cell | safeExplanationHtml"
                           ></td>
                         }
@@ -194,16 +191,11 @@
                 @for (resource of row.entry.resources; track resource; let index = $index) {
                   <li>
                     @if (resourceHref(resource); as href) {
-                      <a
-                        [href]="href"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        [title]="resource.value"
-                      >
-                        {{ resourceLabel(resource, index) }}
+                      <a [href]="href" target="_blank" rel="noopener noreferrer" [title]="resource">
+                        {{ resourceLabel(index) }}
                       </a>
                     } @else {
-                      <span [title]="resource.value">{{ resourceLabel(resource, index) }}</span>
+                      <span [title]="resource">{{ resourceLabel(index) }}</span>
                     }
                   </li>
                 }
