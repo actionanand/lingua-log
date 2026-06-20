@@ -3,6 +3,14 @@ import { Injectable, computed, effect, signal } from '@angular/core';
 export type ThemePreference = 'auto' | 'light' | 'dark';
 type EffectiveTheme = 'light' | 'dark';
 
+declare global {
+  interface Window {
+    LinguaLogAndroid?: {
+      setTheme(theme: EffectiveTheme): void;
+    };
+  }
+}
+
 const themeStorageKey = 'll.ui.preference.v2';
 const themeOrder: readonly ThemePreference[] = ['auto', 'light', 'dark'];
 const lightThemeColor = '#f3f7f4';
@@ -91,6 +99,7 @@ function updateBrowserThemeChrome(theme: EffectiveTheme): void {
   themeColorMeta?.setAttribute('content', themeColor);
   colorSchemeMeta?.setAttribute('content', theme === 'dark' ? 'dark light' : 'light dark');
   document.documentElement.style.backgroundColor = themeColor;
+  window.LinguaLogAndroid?.setTheme(theme);
 }
 
 function readSystemPrefersDark(): boolean {
