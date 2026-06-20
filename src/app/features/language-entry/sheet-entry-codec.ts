@@ -33,22 +33,45 @@ export const sheetColumns = [
   'Other',
   'ExplanationHtml',
   'TableData',
+  'Resource1Label',
   'Resource1',
+  'Resource2Label',
   'Resource2',
 ] as const;
 
 export type SheetColumn = (typeof sheetColumns)[number];
 
-const protectedColumnsWithoutTableData = sheetColumns.filter((column) => column !== 'TableData');
-const unprotectedColumnsWithoutTableData = sheetColumns.filter(
-  (column) => column !== 'Protected' && column !== 'TableData',
+const resourceLabelColumns = ['Resource1Label', 'Resource2Label'] as const;
+const protectedColumnsWithoutResourceLabels = sheetColumns.filter(
+  (column) => !resourceLabelColumns.includes(column as (typeof resourceLabelColumns)[number]),
+);
+const protectedColumnsWithoutTableDataAndResourceLabels = sheetColumns.filter(
+  (column) =>
+    column !== 'TableData' &&
+    !resourceLabelColumns.includes(column as (typeof resourceLabelColumns)[number]),
+);
+const unprotectedColumnsWithoutTableDataAndResourceLabels = sheetColumns.filter(
+  (column) =>
+    column !== 'Protected' &&
+    column !== 'TableData' &&
+    !resourceLabelColumns.includes(column as (typeof resourceLabelColumns)[number]),
 );
 const unprotectedColumnsWithTableData = sheetColumns.filter((column) => column !== 'Protected');
+const unprotectedColumnsWithTableDataWithoutResourceLabels = sheetColumns.filter(
+  (column) =>
+    column !== 'Protected' &&
+    !resourceLabelColumns.includes(column as (typeof resourceLabelColumns)[number]),
+);
 
 export interface TranslationEntry {
   language: LanguageOption;
   languageOther: string;
   text: string;
+}
+
+export interface ResourceEntry {
+  label: string;
+  value: string;
 }
 
 export const tableThemeOptions = ['plain', 'soft', 'grid'] as const;
@@ -73,7 +96,7 @@ export interface LinguaLogEntry {
   translations: TranslationEntry[];
   explanationHtml: string;
   table: EntryTable | null;
-  resources: string[];
+  resources: ResourceEntry[];
 }
 
 type SheetRow = Record<SheetColumn, string>;
@@ -93,7 +116,7 @@ export function createEmptyEntry(): LinguaLogEntry {
     translations: [{ language: 'English', languageOther: '', text: '' }],
     explanationHtml: '',
     table: null,
-    resources: [''],
+    resources: [{ label: '', value: '' }],
   };
 }
 
@@ -123,10 +146,12 @@ export function toSheetCells(entry: LinguaLogEntry): string[] {
   row.SourceOtherLanguage = entry.sourceLanguage === 'Other' ? entry.sourceLanguageOther : '';
   row.SourceText = entry.sourceText;
   row.SourceTransliteration = entry.sourceTransliteration;
-  row.ExplanationHtml = entry.explanationHtml;
+  row.ExplanationHtml = minifyHtml(entry.explanationHtml);
   row.TableData = encodeTableData(entry.table);
-  row.Resource1 = entry.resources[0] ?? '';
-  row.Resource2 = entry.resources[1] ?? '';
+  row.Resource1Label = entry.resources[0]?.label ?? '';
+  row.Resource1 = entry.resources[0]?.value ?? '';
+  row.Resource2Label = entry.resources[1]?.label ?? '';
+  row.Resource2 = entry.resources[1]?.value ?? '';
 
   setLanguageText(row, entry.sourceLanguage, entry.sourceText, entry.sourceLanguageOther);
 
@@ -197,9 +222,12 @@ export function entryFromSheetCells(
     sourceText,
     sourceTransliteration: row.SourceTransliteration,
     translations,
-    explanationHtml: row.ExplanationHtml,
+    explanationHtml: minifyHtml(row.ExplanationHtml),
     table: decodeTableData(row.TableData),
-    resources: [row.Resource1, row.Resource2].filter((resource) => resource.trim().length > 0),
+    resources: [
+      createResourceEntry(row.Resource1Label, row.Resource1),
+      createResourceEntry(row.Resource2Label, row.Resource2),
+    ].filter((resource) => resource.label.length > 0 || resource.value.length > 0),
   };
 }
 
@@ -222,8 +250,12 @@ function findSingleHeaderlessRecord(text: string, rows: string[][]): string[] | 
 
 function inferHeadersForRow(row: string[]): readonly string[] {
   if (isProtectedValue(row[3]) || languageOptions.includes(row[4] as LanguageOption)) {
-    if (looksLikeProtectedRowWithoutTableData(row)) {
-      return protectedColumnsWithoutTableData;
+    if (row.length === protectedColumnsWithoutResourceLabels.length) {
+      return protectedColumnsWithoutResourceLabels;
+    }
+
+    if (row.length === protectedColumnsWithoutTableDataAndResourceLabels.length) {
+      return protectedColumnsWithoutTableDataAndResourceLabels;
     }
 
     return sheetColumns;
@@ -231,23 +263,17 @@ function inferHeadersForRow(row: string[]): readonly string[] {
 
   if (languageOptions.includes(row[3] as LanguageOption)) {
     if (looksLikeUnprotectedRowWithTableData(row)) {
+      if (row.length === unprotectedColumnsWithTableDataWithoutResourceLabels.length) {
+        return unprotectedColumnsWithTableDataWithoutResourceLabels;
+      }
+
       return unprotectedColumnsWithTableData;
     }
 
-    return unprotectedColumnsWithoutTableData;
+    return unprotectedColumnsWithoutTableDataAndResourceLabels;
   }
 
   return sheetColumns;
-}
-
-function looksLikeProtectedRowWithoutTableData(row: string[]): boolean {
-  const tableDataIndex = sheetColumns.indexOf('TableData');
-
-  return (
-    row.length === protectedColumnsWithoutTableData.length &&
-    !looksLikeTableData(row[tableDataIndex]) &&
-    !(isBlank(row[tableDataIndex] ?? '') && !isBlank(row[tableDataIndex + 1] ?? ''))
-  );
 }
 
 function looksLikeUnprotectedRowWithTableData(row: string[]): boolean {
@@ -255,6 +281,7 @@ function looksLikeUnprotectedRowWithTableData(row: string[]): boolean {
 
   return (
     row.length === unprotectedColumnsWithTableData.length ||
+    row.length === unprotectedColumnsWithTableDataWithoutResourceLabels.length ||
     looksLikeTableData(row[tableDataIndex]) ||
     (isBlank(row[tableDataIndex] ?? '') && !isBlank(row[tableDataIndex + 1] ?? ''))
   );
@@ -264,6 +291,17 @@ function looksLikeTableData(value: string | undefined): boolean {
   const trimmedValue = value?.trim() ?? '';
 
   return trimmedValue.startsWith('{"v":') || trimmedValue.startsWith('{"r":');
+}
+
+function createResourceEntry(label: string, value: string): ResourceEntry {
+  return {
+    label: label.trim(),
+    value: value.trim(),
+  };
+}
+
+function minifyHtml(value: string): string {
+  return value.replace(/\r?\n\s*/g, '').trim();
 }
 
 function normalizeCellsForHeaders(

@@ -317,6 +317,14 @@
         <button
           type="button"
           class="secondary-button"
+          (mousedown)="keepTableSelection($event)"
+          (click)="highlightTableSelection()"
+        >
+          Highlight
+        </button>
+        <button
+          type="button"
+          class="secondary-button"
           (click)="addTableRow()"
           [disabled]="!canAddTableRow()"
         >
@@ -350,7 +358,7 @@
           rows="4"
           [value]="tablePasteText()"
           (input)="updateTablePasteText(tablePaste.value)"
-          placeholder="Example: | Word | Meaning |&#10;| --- | --- |&#10;| नमस्ते | hello |"
+          placeholder="Example: | Word | Meaning |&#10;| --- | --- |&#10;| hello | greeting |"
           #tablePaste
         ></textarea>
         <button type="button" class="secondary-button" (click)="applyTablePaste()">
@@ -378,15 +386,19 @@
                     <label class="sr-only" [for]="'table-cell-' + rowIndex + '-' + columnIndex">
                       Table cell row {{ rowIndex + 1 }}, column {{ columnIndex + 1 }}
                     </label>
-                    <textarea
+                    <div
                       [id]="'table-cell-' + rowIndex + '-' + columnIndex"
-                      class="table-cell-input"
-                      rows="2"
-                      [value]="cell"
-                      (input)="updateTableCell(rowIndex, columnIndex, tableCell.value)"
+                      class="table-cell-editor"
+                      contenteditable="true"
+                      role="textbox"
+                      aria-multiline="true"
+                      [attr.data-row-index]="rowIndex"
+                      [attr.data-column-index]="columnIndex"
+                      [innerHTML]="cell"
+                      (blur)="updateTableCell(rowIndex, columnIndex, tableCell.innerHTML)"
                       (paste)="pasteIntoTable($event, rowIndex, columnIndex)"
                       #tableCell
-                    ></textarea>
+                    ></div>
                   </td>
                 }
               </tr>
@@ -428,7 +440,7 @@
             rows="4"
             [value]="tablePasteText()"
             (input)="updateTablePasteText(newTablePaste.value)"
-            placeholder="Example: | Word | Meaning |&#10;| --- | --- |&#10;| नमस्ते | hello |"
+            placeholder="Example: | Word | Meaning |&#10;| --- | --- |&#10;| hello | greeting |"
             #newTablePaste
           ></textarea>
           <button type="button" class="secondary-button" (click)="applyTablePaste()">
@@ -457,15 +469,30 @@
 
     <div class="resource-list" formArrayName="resources">
       @for (resource of resources.controls; track resource; let index = $index) {
-        <div class="resource-row">
-          <label class="field-label" [for]="'resource-' + index">Resource {{ index + 1 }}</label>
-          <input
-            [id]="'resource-' + index"
-            class="text-input"
-            type="text"
-            [formControlName]="index"
-            placeholder="Optional source"
-          />
+        <div class="resource-row" [formGroupName]="index">
+          <div>
+            <label class="field-label" [for]="'resource-label-' + index">
+              Label {{ index + 1 }}
+            </label>
+            <input
+              [id]="'resource-label-' + index"
+              class="text-input"
+              type="text"
+              formControlName="label"
+              placeholder="Example: YouTube"
+            />
+          </div>
+
+          <div>
+            <label class="field-label" [for]="'resource-' + index">Resource {{ index + 1 }}</label>
+            <input
+              [id]="'resource-' + index"
+              class="text-input"
+              type="text"
+              formControlName="value"
+              placeholder="Optional source"
+            />
+          </div>
           <button
             type="button"
             class="icon-button"

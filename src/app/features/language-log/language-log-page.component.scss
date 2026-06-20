@@ -402,8 +402,23 @@ button:focus-visible {
   font-weight: 850;
 }
 
+.entry-table span[style*='background-color'] {
+  border-radius: 0.2rem;
+  padding: 0.02rem 0.12rem;
+}
+
+.table-theme-plain {
+  background: var(--surface);
+}
+
 .table-theme-plain .entry-table td {
   background: var(--surface);
+  border-color: transparent;
+  border-bottom-color: var(--border);
+}
+
+.table-theme-soft {
+  background: var(--surface-soft);
 }
 
 .table-theme-soft .entry-table td {
@@ -412,11 +427,20 @@ button:focus-visible {
 
 .table-theme-soft .entry-table tr:first-child td {
   background: var(--accent-soft);
+  border-color: var(--accent-border);
+}
+
+.table-theme-grid {
+  border-color: var(--border-strong);
 }
 
 .table-theme-grid .entry-table td {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface-soft) 70%, var(--surface) 30%);
   border-color: var(--border-strong);
+}
+
+.table-theme-grid .entry-table tr:nth-child(even) td {
+  background: var(--surface);
 }
 
 .resources ul {

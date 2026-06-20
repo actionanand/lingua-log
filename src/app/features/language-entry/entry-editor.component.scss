@@ -227,11 +227,8 @@ button:focus-visible {
 .resource-row {
   align-items: end;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-}
-
-.resource-row .field-label {
-  grid-column: 1 / -1;
+  gap: 0.75rem;
+  grid-template-columns: minmax(8rem, 0.7fr) minmax(0, 1.5fr) auto;
 }
 
 .primary-button,
@@ -365,13 +362,16 @@ button:focus-visible {
 }
 
 .compact-field {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.45rem;
   margin-bottom: 0;
 }
 
 .compact-select,
 .compact-number {
-  display: block;
-  margin-top: 0.3rem;
+  display: inline-block;
+  margin-top: 0;
   min-width: 7rem;
 }
 
@@ -398,29 +398,46 @@ button:focus-visible {
   vertical-align: top;
 }
 
-.table-cell-input {
+.table-cell-editor {
   background: transparent;
   border: 0;
   color: var(--text);
   display: block;
   font: inherit;
   min-height: 4.4rem;
+  outline: 0;
+  overflow-wrap: anywhere;
   padding: 0.65rem;
-  resize: vertical;
+  white-space: pre-wrap;
   width: 100%;
 }
 
-.table-cell-input:focus {
+.table-cell-editor:focus {
   outline: 3px solid var(--focus);
   outline-offset: -3px;
 }
 
-.bold-cell .table-cell-input {
+.bold-cell .table-cell-editor {
   font-weight: 800;
+}
+
+.table-cell-editor span[style*='background-color'] {
+  border-radius: 0.2rem;
+  padding: 0.02rem 0.12rem;
+}
+
+.table-theme-plain {
+  background: var(--surface);
 }
 
 .table-theme-plain .entry-table-builder td {
   background: var(--surface);
+  border-color: transparent;
+  border-bottom-color: var(--border);
+}
+
+.table-theme-soft {
+  background: var(--surface-soft);
 }
 
 .table-theme-soft .entry-table-builder td {
@@ -429,11 +446,21 @@ button:focus-visible {
 
 .table-theme-soft .entry-table-builder tr:first-child td {
   background: var(--accent-soft);
+  border-color: var(--accent-border);
+}
+
+.table-theme-grid {
+  background: var(--surface);
+  border-color: var(--border-strong);
 }
 
 .table-theme-grid .entry-table-builder td {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface-soft) 70%, var(--surface) 30%);
   border-color: var(--border-strong);
+}
+
+.table-theme-grid .entry-table-builder tr:nth-child(even) td {
+  background: var(--surface);
 }
 
 .table-limit-note {

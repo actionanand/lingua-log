@@ -14,6 +14,7 @@ import { EntryEditorComponent } from '../language-entry/entry-editor.component';
 import {
   LanguageOption,
   LinguaLogEntry,
+  ResourceEntry,
   languageOptions,
 } from '../language-entry/sheet-entry-codec';
 import { LanguageLogSheetRow, LanguageLogSheetService } from './language-log-sheet.service';
@@ -195,8 +196,8 @@ export class LanguageLogPageComponent {
     }
   }
 
-  protected resourceHref(resource: string): string {
-    const trimmedResource = resource.trim();
+  protected resourceHref(resource: ResourceEntry): string {
+    const trimmedResource = resource.value.trim();
 
     if (!trimmedResource) {
       return '';
@@ -213,8 +214,8 @@ export class LanguageLogPageComponent {
     return '';
   }
 
-  protected resourceLabel(index: number): string {
-    return `Resource ${index + 1}`;
+  protected resourceLabel(resource: ResourceEntry, index: number): string {
+    return resource.label || `Resource ${index + 1}`;
   }
 
   protected displayRowNumber(rowNumber: number): number {
@@ -291,7 +292,7 @@ export class LanguageLogPageComponent {
       entry.sourceTransliteration,
       htmlToText(entry.explanationHtml),
       tableToText(entry.table?.rows ?? []),
-      ...entry.resources,
+      ...entry.resources.flatMap((resource) => [resource.label, resource.value]),
       ...entry.translations.flatMap((translation) => [
         translation.language,
         translation.languageOther,
@@ -313,7 +314,10 @@ function htmlToText(value: string): string {
 }
 
 function tableToText(rows: readonly string[][]): string {
-  return rows.flat().join(' ');
+  return rows
+    .flat()
+    .map((cell) => htmlToText(cell))
+    .join(' ');
 }
 
 function isNativeAndroid(): boolean {

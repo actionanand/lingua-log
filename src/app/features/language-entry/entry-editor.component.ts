@@ -20,6 +20,7 @@ import {
   EntryTable,
   LanguageOption,
   LinguaLogEntry,
+  ResourceEntry,
   TableTheme,
   TranslationEntry,
   createEmptyEntry,
@@ -35,6 +36,11 @@ type TranslationForm = FormGroup<{
   text: FormControl<string>;
 }>;
 
+type ResourceForm = FormGroup<{
+  label: FormControl<string>;
+  value: FormControl<string>;
+}>;
+
 type EntryForm = FormGroup<{
   isProtected: FormControl<boolean>;
   sourceLanguage: FormControl<LanguageOption>;
@@ -43,7 +49,7 @@ type EntryForm = FormGroup<{
   sourceTransliteration: FormControl<string>;
   translations: FormArray<TranslationForm>;
   explanationHtml: FormControl<string>;
-  resources: FormArray<FormControl<string>>;
+  resources: FormArray<ResourceForm>;
 }>;
 
 type RichTextCommand =
@@ -143,9 +149,7 @@ export class EntryEditorComponent {
     ),
     explanationHtml: this.startingEntry.explanationHtml,
     resources: this.formBuilder.nonNullable.array(
-      this.startingEntry.resources.map((resource) =>
-        this.formBuilder.nonNullable.control(resource),
-      ),
+      this.startingEntry.resources.map((resource) => this.createResourceGroup(resource)),
     ),
   });
 
@@ -164,7 +168,7 @@ export class EntryEditorComponent {
     return this.form.controls.translations;
   }
 
-  protected get resources(): FormArray<FormControl<string>> {
+  protected get resources(): FormArray<ResourceForm> {
     return this.form.controls.resources;
   }
 
@@ -204,13 +208,13 @@ export class EntryEditorComponent {
 
   protected addResource(): void {
     if (this.resources.length < this.maxResources) {
-      this.resources.push(this.formBuilder.nonNullable.control(''));
+      this.resources.push(this.createResourceGroup({ label: '', value: '' }));
     }
   }
 
   protected removeResource(index: number): void {
     if (this.resources.length === 1) {
-      this.resources.at(index).setValue('');
+      this.resources.at(index).reset({ label: '', value: '' });
       return;
     }
 
@@ -301,13 +305,21 @@ export class EntryEditorComponent {
     this.updateTable((table) => ({ ...table, boldFirstColumn: !table.boldFirstColumn }));
   }
 
+  protected highlightTableSelection(): void {
+    document.execCommand('styleWithCSS', false, 'true');
+    document.execCommand('hiliteColor', false, 'yellow');
+    this.syncSelectedTableCell();
+  }
+
   protected updateTableCell(rowIndex: number, columnIndex: number, value: string): void {
+    const sanitizedValue = sanitizeTableCellHtml(value);
+
     this.updateTable((table) => ({
       ...table,
       rows: table.rows.map((row, currentRowIndex) =>
         currentRowIndex === rowIndex
           ? row.map((cell, currentColumnIndex) =>
-              currentColumnIndex === columnIndex ? value : cell,
+              currentColumnIndex === columnIndex ? sanitizedValue : cell,
             )
           : row,
       ),
@@ -333,12 +345,16 @@ export class EntryEditorComponent {
     const pastedText = event.clipboardData?.getData('text/plain') ?? '';
     const parsedRows = parsePastedTable(pastedText);
 
-    if (parsedRows.length === 0) {
+    if (parsedRows.length === 0 || (parsedRows.length === 1 && parsedRows[0]?.length === 1)) {
       return;
     }
 
     event.preventDefault();
     this.mergeTableRows(parsedRows, rowIndex, columnIndex);
+  }
+
+  protected keepTableSelection(event: MouseEvent): void {
+    event.preventDefault();
   }
 
   protected formatExplanation(command: RichTextCommand): void {
@@ -385,10 +401,11 @@ export class EntryEditorComponent {
     }
 
     const sanitizedHtml = sanitizeRichText(editor.nativeElement.innerHTML);
-    this.form.controls.explanationHtml.setValue(sanitizedHtml);
+    const minifiedHtml = minifyHtml(sanitizedHtml);
+    this.form.controls.explanationHtml.setValue(minifiedHtml);
 
-    if (editor.nativeElement.innerHTML !== sanitizedHtml) {
-      editor.nativeElement.innerHTML = sanitizedHtml;
+    if (editor.nativeElement.innerHTML !== minifiedHtml) {
+      editor.nativeElement.innerHTML = minifiedHtml;
     }
   }
 
@@ -434,9 +451,11 @@ export class EntryEditorComponent {
 
     this.resources.clear();
     const resources =
-      entry.resources.length > 0 ? entry.resources.slice(0, this.maxResources) : [''];
+      entry.resources.length > 0
+        ? entry.resources.slice(0, this.maxResources)
+        : [{ label: '', value: '' }];
     for (const resource of resources) {
-      this.resources.push(this.formBuilder.nonNullable.control(resource));
+      this.resources.push(this.createResourceGroup(resource));
     }
 
     this.form.patchValue({
@@ -473,11 +492,14 @@ export class EntryEditorComponent {
           text: translation.text.trim(),
         }))
         .filter((translation) => translation.text.length > 0),
-      explanationHtml: rawValue.explanationHtml,
+      explanationHtml: minifyHtml(rawValue.explanationHtml),
       table: normalizeTable(this.table()),
       resources: rawValue.resources
-        .map((resource) => resource.trim())
-        .filter(Boolean)
+        .map((resource) => ({
+          label: resource.label.trim(),
+          value: resource.value.trim(),
+        }))
+        .filter((resource) => resource.label.length > 0 || resource.value.length > 0)
         .slice(0, this.maxResources),
     };
   }
@@ -495,6 +517,13 @@ export class EntryEditorComponent {
       language: translation.language,
       languageOther: translation.languageOther,
       text: translation.text,
+    });
+  }
+
+  private createResourceGroup(resource: ResourceEntry): ResourceForm {
+    return this.formBuilder.nonNullable.group({
+      label: resource.label,
+      value: resource.value,
     });
   }
 
@@ -519,6 +548,23 @@ export class EntryEditorComponent {
     this.table.update((table) => (table ? normalizeTableForEditing(updater(table)) : table));
   }
 
+  private syncSelectedTableCell(): void {
+    const selection = document.getSelection();
+    const selectedNode = selection?.anchorNode;
+    const cellElement =
+      selectedNode instanceof HTMLElement
+        ? selectedNode.closest<HTMLElement>('.table-cell-editor')
+        : selectedNode?.parentElement?.closest<HTMLElement>('.table-cell-editor');
+    const rowIndex = Number(cellElement?.dataset['rowIndex']);
+    const columnIndex = Number(cellElement?.dataset['columnIndex']);
+
+    if (!cellElement || Number.isNaN(rowIndex) || Number.isNaN(columnIndex)) {
+      return;
+    }
+
+    this.updateTableCell(rowIndex, columnIndex, cellElement.innerHTML);
+  }
+
   private setTableRows(rows: string[][]): void {
     const normalizedRows = normalizeTableRows(rows);
 
@@ -530,7 +576,7 @@ export class EntryEditorComponent {
       theme: this.table()?.theme ?? 'soft',
       boldHeader: this.table()?.boldHeader ?? true,
       boldFirstColumn: this.table()?.boldFirstColumn ?? false,
-      rows: normalizedRows,
+      rows: normalizedRows.map((row) => row.map(sanitizeTableCellHtml)),
     });
   }
 
@@ -589,7 +635,7 @@ function normalizeTable(table: EntryTable | null): EntryTable | null {
     return null;
   }
 
-  const rows = normalizeTableRows(table.rows);
+  const rows = normalizeTableRows(table.rows).map((row) => row.map(sanitizeTableCellHtml));
 
   if (rows.length === 0 || rows.every((row) => row.every((cell) => cell.trim().length === 0))) {
     return null;
@@ -606,7 +652,7 @@ function normalizeTable(table: EntryTable | null): EntryTable | null {
 function normalizeTableForEditing(table: EntryTable): EntryTable {
   return {
     ...table,
-    rows: normalizeTableRows(table.rows),
+    rows: normalizeTableRows(table.rows).map((row) => row.map(sanitizeTableCellHtml)),
   };
 }
 
@@ -681,6 +727,49 @@ function clampInteger(value: number, min: number, max: number): number {
   }
 
   return Math.max(min, Math.min(max, Math.trunc(value)));
+}
+
+function minifyHtml(value: string): string {
+  return value.replace(/\r?\n\s*/g, '').trim();
+}
+
+function sanitizeTableCellHtml(html: string): string {
+  const template = document.createElement('template');
+  template.innerHTML = html;
+  const sanitized = Array.from(template.content.childNodes).map(sanitizeTableCellNode).join('');
+
+  return minifyHtml(sanitized === '<br>' ? '' : sanitized);
+}
+
+function sanitizeTableCellNode(node: ChildNode): string {
+  if (node.nodeType === Node.TEXT_NODE) {
+    return escapeHtml(node.textContent ?? '');
+  }
+
+  if (!(node instanceof HTMLElement)) {
+    return '';
+  }
+
+  const children = Array.from(node.childNodes).map(sanitizeTableCellNode).join('');
+
+  switch (node.tagName.toLowerCase()) {
+    case 'b':
+    case 'strong':
+      return wrapWithAllowedStyles(node, `<b>${children}</b>`);
+    case 'i':
+    case 'em':
+      return wrapWithAllowedStyles(node, `<i>${children}</i>`);
+    case 'span':
+    case 'mark':
+      return wrapWithAllowedStyles(node, children);
+    case 'br':
+      return '<br>';
+    case 'div':
+    case 'p':
+      return `${children}<br>`;
+    default:
+      return children;
+  }
 }
 
 function sanitizeRichText(html: string): string {
