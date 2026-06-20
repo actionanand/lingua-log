@@ -192,7 +192,7 @@
       <header class="modal-header">
         <div>
           <p class="eyebrow">Item {{ displaySheetItem(row.rowNumber) }}</p>
-          <h2 id="details-title">{{ row.entry.sourceText }}</h2>
+          <p class="modal-subtitle">{{ sourceDisplayLanguage(row.entry) }} note</p>
         </div>
         <button type="button" class="close-button" (click)="closeView()" aria-label="Close details">
           <span class="material-symbols-rounded" aria-hidden="true">close</span>
@@ -203,25 +203,28 @@
         <section class="detail-section">
           <h3>Source</h3>
           <p class="language-pill">{{ sourceDisplayLanguage(row.entry) }}</p>
+          <h2 id="details-title" class="detail-title">{{ row.entry.sourceText }}</h2>
           @if (row.entry.sourceTransliteration) {
             <p class="transliteration-text">{{ row.entry.sourceTransliteration }}</p>
           }
         </section>
 
         <section class="detail-section">
-          <h3>Dates</h3>
-          <div class="date-row">
-            <span class="date-chip">
-              <span class="date-label">Created Date:</span>
-              <span class="date-value">{{ formatDate(row.entry.createdAt) }}</span>
-            </span>
-            <span class="date-chip">
-              <span class="date-label">Last Updated:</span>
-              <span class="date-value">{{
-                formatDate(row.entry.updatedAt || row.entry.createdAt)
-              }}</span>
-            </span>
-          </div>
+          <h3>At a glance</h3>
+          <dl class="insight-list">
+            <div>
+              <dt>Translations</dt>
+              <dd>{{ row.entry.translations.length }}</dd>
+            </div>
+            <div>
+              <dt>Table</dt>
+              <dd>{{ tableSize(row.entry.table) }}</dd>
+            </div>
+            <div>
+              <dt>Resources</dt>
+              <dd>{{ row.entry.resources.length }}</dd>
+            </div>
+          </dl>
         </section>
       </div>
 
