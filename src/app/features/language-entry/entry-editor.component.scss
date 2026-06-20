@@ -270,6 +270,12 @@ button:focus-visible {
   opacity: 0.55;
 }
 
+.secondary-button.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+}
+
 .format-button {
   min-width: 2.75rem;
 }
@@ -331,6 +337,121 @@ button:focus-visible {
   margin: 0.35rem 0;
 }
 
+.table-tools,
+.new-table-panel,
+.table-paste-panel {
+  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.empty-table-tools {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.table-tools {
+  align-items: center;
+}
+
+.table-paste-panel {
+  align-items: stretch;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  padding: 0.75rem;
+}
+
+.compact-field {
+  margin-bottom: 0;
+}
+
+.compact-select,
+.compact-number {
+  display: block;
+  margin-top: 0.3rem;
+  min-width: 7rem;
+}
+
+.compact-number {
+  max-width: 8rem;
+}
+
+.entry-table-wrap {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.entry-table-builder {
+  border-collapse: collapse;
+  min-width: min(42rem, 100%);
+  width: 100%;
+}
+
+.entry-table-builder td {
+  border: 1px solid var(--border);
+  min-width: 8.5rem;
+  padding: 0;
+  vertical-align: top;
+}
+
+.table-cell-input {
+  background: transparent;
+  border: 0;
+  color: var(--text);
+  display: block;
+  font: inherit;
+  min-height: 4.4rem;
+  padding: 0.65rem;
+  resize: vertical;
+  width: 100%;
+}
+
+.table-cell-input:focus {
+  outline: 3px solid var(--focus);
+  outline-offset: -3px;
+}
+
+.bold-cell .table-cell-input {
+  font-weight: 800;
+}
+
+.table-theme-plain .entry-table-builder td {
+  background: var(--surface);
+}
+
+.table-theme-soft .entry-table-builder td {
+  background: var(--surface-soft);
+}
+
+.table-theme-soft .entry-table-builder tr:first-child td {
+  background: var(--accent-soft);
+}
+
+.table-theme-grid .entry-table-builder td {
+  background: var(--surface);
+  border-color: var(--border-strong);
+}
+
+.table-limit-note {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 0;
+}
+
+.sr-only {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
 .status-message {
   background: var(--accent-soft);
   border: 1px solid var(--accent-border);
@@ -370,5 +491,15 @@ button:focus-visible {
   .translation-row.has-other-language,
   .resource-row {
     grid-template-columns: 1fr;
+  }
+
+  .table-tools .secondary-button,
+  .table-tools .icon-button {
+    min-height: 2.35rem;
+    padding: 0.45rem 0.6rem;
+  }
+
+  .entry-table-builder td {
+    min-width: 7.5rem;
   }
 }

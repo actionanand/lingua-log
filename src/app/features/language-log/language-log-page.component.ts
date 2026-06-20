@@ -290,6 +290,7 @@ export class LanguageLogPageComponent {
       entry.sourceText,
       entry.sourceTransliteration,
       htmlToText(entry.explanationHtml),
+      tableToText(entry.table?.rows ?? []),
       ...entry.resources,
       ...entry.translations.flatMap((translation) => [
         translation.language,
@@ -309,6 +310,10 @@ function htmlToText(value: string): string {
   template.innerHTML = value;
 
   return template.content.textContent ?? '';
+}
+
+function tableToText(rows: readonly string[][]): string {
+  return rows.flat().join(' ');
 }
 
 function isNativeAndroid(): boolean {

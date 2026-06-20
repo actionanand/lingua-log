@@ -275,6 +275,170 @@
     ></div>
   </section>
 
+  <section class="form-section" aria-labelledby="table-section-title">
+    <div class="section-heading">
+      <h2 id="table-section-title">Table</h2>
+      <p>Create an optional table for grammar patterns, word splits, examples, or comparisons.</p>
+    </div>
+
+    @if (table(); as currentTable) {
+      <div class="table-tools" aria-label="Table tools">
+        <label class="field-label compact-field" for="table-theme">
+          Theme
+          <select
+            id="table-theme"
+            class="select-input compact-select"
+            [value]="currentTable.theme"
+            (change)="updateTableTheme(tableTheme.value)"
+            #tableTheme
+          >
+            @for (theme of tableThemeOptions; track theme.value) {
+              <option [value]="theme.value">{{ theme.label }}</option>
+            }
+          </select>
+        </label>
+
+        <button
+          type="button"
+          class="secondary-button"
+          [class.is-active]="currentTable.boldHeader"
+          (click)="toggleTableBoldHeader()"
+        >
+          Bold header
+        </button>
+        <button
+          type="button"
+          class="secondary-button"
+          [class.is-active]="currentTable.boldFirstColumn"
+          (click)="toggleTableBoldFirstColumn()"
+        >
+          Bold first column
+        </button>
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="addTableRow()"
+          [disabled]="!canAddTableRow()"
+        >
+          Add row
+        </button>
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="addTableColumn()"
+          [disabled]="!canAddTableColumn()"
+        >
+          Add column
+        </button>
+        <button type="button" class="secondary-button" (click)="removeEmptyTableRows()">
+          Remove empty rows
+        </button>
+        <button type="button" class="icon-button" (click)="removeLastTableRow()">
+          Remove last row
+        </button>
+        <button type="button" class="icon-button" (click)="removeLastTableColumn()">
+          Remove last column
+        </button>
+        <button type="button" class="icon-button" (click)="clearTable()">Remove table</button>
+      </div>
+
+      <div class="table-paste-panel">
+        <label class="field-label" for="table-paste">Paste Markdown or copied table cells</label>
+        <textarea
+          id="table-paste"
+          class="text-area"
+          rows="4"
+          [value]="tablePasteText()"
+          (input)="updateTablePasteText(tablePaste.value)"
+          placeholder="Example: | Word | Meaning |&#10;| --- | --- |&#10;| नमस्ते | hello |"
+          #tablePaste
+        ></textarea>
+        <button type="button" class="secondary-button" (click)="applyTablePaste()">
+          Apply pasted table
+        </button>
+      </div>
+
+      <div
+        class="entry-table-wrap"
+        [class.table-theme-plain]="currentTable.theme === 'plain'"
+        [class.table-theme-soft]="currentTable.theme === 'soft'"
+        [class.table-theme-grid]="currentTable.theme === 'grid'"
+      >
+        <table class="entry-table-builder">
+          <tbody>
+            @for (row of currentTable.rows; track $index; let rowIndex = $index) {
+              <tr>
+                @for (cell of row; track $index; let columnIndex = $index) {
+                  <td
+                    [class.bold-cell]="
+                      (currentTable.boldHeader && rowIndex === 0) ||
+                      (currentTable.boldFirstColumn && columnIndex === 0)
+                    "
+                  >
+                    <label class="sr-only" [for]="'table-cell-' + rowIndex + '-' + columnIndex">
+                      Table cell row {{ rowIndex + 1 }}, column {{ columnIndex + 1 }}
+                    </label>
+                    <textarea
+                      [id]="'table-cell-' + rowIndex + '-' + columnIndex"
+                      class="table-cell-input"
+                      rows="2"
+                      [value]="cell"
+                      (input)="updateTableCell(rowIndex, columnIndex, tableCell.value)"
+                      (paste)="pasteIntoTable($event, rowIndex, columnIndex)"
+                      #tableCell
+                    ></textarea>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <p class="table-limit-note">
+        {{ currentTable.rows.length }} of {{ maxTableRows }} rows, {{ tableColumnCount() }} of
+        {{ maxTableColumns }} columns.
+      </p>
+    } @else {
+      <div class="empty-table-tools">
+        <div class="new-table-panel">
+          <label class="field-label compact-field" for="new-table-columns">
+            Columns
+            <input
+              id="new-table-columns"
+              class="text-input compact-number"
+              type="number"
+              min="1"
+              [max]="maxTableColumns"
+              [value]="newTableColumnCount()"
+              (input)="updateNewTableColumnCount(newTableColumns.value)"
+              #newTableColumns
+            />
+          </label>
+          <button type="button" class="secondary-button" (click)="createTable()">
+            Create table
+          </button>
+        </div>
+
+        <div class="table-paste-panel">
+          <label class="field-label" for="new-table-paste">Paste Markdown or copied cells</label>
+          <textarea
+            id="new-table-paste"
+            class="text-area"
+            rows="4"
+            [value]="tablePasteText()"
+            (input)="updateTablePasteText(newTablePaste.value)"
+            placeholder="Example: | Word | Meaning |&#10;| --- | --- |&#10;| नमस्ते | hello |"
+            #newTablePaste
+          ></textarea>
+          <button type="button" class="secondary-button" (click)="applyTablePaste()">
+            Create from paste
+          </button>
+        </div>
+      </div>
+    }
+  </section>
+
   <section class="form-section" aria-labelledby="resource-section-title">
     <div class="section-heading with-action">
       <div>

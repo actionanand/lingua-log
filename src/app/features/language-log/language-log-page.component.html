@@ -157,6 +157,37 @@
             </section>
           }
 
+          @if (row.entry.table; as entryTable) {
+            <section class="entry-table-section" aria-label="Table notes">
+              <h3>Table</h3>
+              <div
+                class="entry-table-wrap"
+                [class.table-theme-plain]="entryTable.theme === 'plain'"
+                [class.table-theme-soft]="entryTable.theme === 'soft'"
+                [class.table-theme-grid]="entryTable.theme === 'grid'"
+              >
+                <table class="entry-table">
+                  <tbody>
+                    @for (tableRow of entryTable.rows; track $index; let rowIndex = $index) {
+                      <tr>
+                        @for (cell of tableRow; track $index; let columnIndex = $index) {
+                          <td
+                            [class.bold-cell]="
+                              (entryTable.boldHeader && rowIndex === 0) ||
+                              (entryTable.boldFirstColumn && columnIndex === 0)
+                            "
+                          >
+                            {{ cell }}
+                          </td>
+                        }
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          }
+
           @if (row.entry.resources.length > 0) {
             <section class="resources" aria-label="Resources">
               <h3>Resources</h3>
