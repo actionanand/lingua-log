@@ -212,17 +212,29 @@
         <section class="detail-section">
           <h3>At a glance</h3>
           <dl class="insight-list">
+            @if (row.entry.resources.length > 0) {
+              <div class="resource-insight">
+                <dt>Resources</dt>
+                <dd>
+                  @for (resource of row.entry.resources; track resource; let index = $index) {
+                    @if (resourceHref(resource); as href) {
+                      <a [href]="href" target="_blank" rel="noopener noreferrer">
+                        {{ resourceLabel(resource, index) }}
+                      </a>
+                    } @else {
+                      <span>{{ resourceLabel(resource, index) }}</span>
+                    }
+                  }
+                </dd>
+              </div>
+            }
             <div>
-              <dt>Translations</dt>
-              <dd>{{ row.entry.translations.length }}</dd>
+              <dt>Created Date</dt>
+              <dd>{{ formatDate(row.entry.createdAt) }}</dd>
             </div>
             <div>
-              <dt>Table</dt>
-              <dd>{{ tableSize(row.entry.table) }}</dd>
-            </div>
-            <div>
-              <dt>Resources</dt>
-              <dd>{{ row.entry.resources.length }}</dd>
+              <dt>Last Updated</dt>
+              <dd>{{ formatDate(row.entry.updatedAt || row.entry.createdAt) }}</dd>
             </div>
           </dl>
         </section>
@@ -273,25 +285,6 @@
               </tbody>
             </table>
           </div>
-        </section>
-      }
-
-      @if (row.entry.resources.length > 0) {
-        <section class="detail-section resources">
-          <h3>Resources</h3>
-          <ul>
-            @for (resource of row.entry.resources; track resource; let index = $index) {
-              <li>
-                @if (resourceHref(resource); as href) {
-                  <a [href]="href" target="_blank" rel="noopener noreferrer">
-                    {{ resourceLabel(resource, index) }}
-                  </a>
-                } @else {
-                  <span>{{ resourceLabel(resource, index) }}</span>
-                }
-              </li>
-            }
-          </ul>
         </section>
       }
     </div>

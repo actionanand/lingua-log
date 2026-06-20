@@ -469,10 +469,35 @@ button:disabled {
 }
 
 .insight-list dd {
-  color: var(--heading);
-  font-weight: 850;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  font-weight: 500;
   margin: 0;
   text-align: right;
+}
+
+.resource-insight {
+  align-items: start;
+}
+
+.resource-insight dd {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: flex-end;
+}
+
+.resource-insight a,
+.resource-insight span {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  color: var(--link);
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 750;
+  padding: 0.22rem 0.55rem;
+  text-decoration: none;
 }
 
 .translation-chip {
