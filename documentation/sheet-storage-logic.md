@@ -7,10 +7,10 @@ This app stores one language log entry as one Google Sheet row. The converter co
 Use this header order in Google Sheets:
 
 ```tsv
-EntryId	CreatedAt	UpdatedAt	Protected	SourceLanguage	SourceOtherLanguage	SourceText	SourceTransliteration	Tamil	English	Sanskrit	Hindi	Kannada	Malayalam	Telugu	French	OtherLanguage	Other	ExplanationHtml	TableData	Resource1	Resource2
+EntryId	CreatedAt	UpdatedAt	Protected	SourceLanguage	SourceOtherLanguage	SourceText	SourceTransliteration	Tamil	English	Sanskrit	Hindi	Kannada	Malayalam	Telugu	French	OtherLanguage	Other	ExplanationHtml	TableData	Resource1Label	Resource1Value	Resource2Label	Resource2Value	TableName
 ```
 
-`TableData` was added after `ExplanationHtml`. Headerless single-row paste still supports older rows that do not contain `TableData`.
+`TableData` was added after `ExplanationHtml`. `TableName` is the last column. Headerless single-row paste still supports older rows that do not contain `TableData`.
 
 ## Main Fields
 
@@ -26,7 +26,14 @@ EntryId	CreatedAt	UpdatedAt	Protected	SourceLanguage	SourceOtherLanguage	SourceT
 
 The language columns store the source sentence and translations by language. When a language is `Other`, `OtherLanguage` stores the temporary language name and `Other` stores the sentence text.
 
-`Resource1` and `Resource2` store optional source references.
+Resources are stored as label/value pairs:
+
+- `Resource1Label`
+- `Resource1Value`
+- `Resource2Label`
+- `Resource2Value`
+
+The label is optional display text. The value is the actual link or source reference.
 
 ## Rich Text Explanation
 
@@ -58,6 +65,8 @@ The optional table is stored in `TableData` as compact JSON:
 }
 ```
 
+`TableName` stores an optional display name for the table. If it is blank, the UI displays `Table`.
+
 The keys are:
 
 - `v`: table storage version. Current value is `1`.
@@ -78,7 +87,7 @@ Table cells may contain sanitized inline HTML. The table highlighter wraps selec
 <span style="background-color: yellow; color: #102114">highlighted text</span>
 ```
 
-The dark text color is stored with the highlight so highlighted words remain readable in dark mode. On edit and `/sheet-preview`, the JSON is decoded back into the editor table and rendered through `safeTableCellHtml` after table-cell sanitization. On the log page, each cell is rendered through the same safe HTML pipe used by explanations.
+The dark text color is stored with the highlight so highlighted words remain readable in dark mode. Older saved table cells that only have `background-color: yellow` are normalized to add `color: #102114` when they are sanitized for display or editing. On edit and `/sheet-preview`, the JSON is decoded back into the editor table and rendered through `safeTableCellHtml` after table-cell sanitization. On the log page, each cell is rendered through the same safe HTML pipe used by explanations.
 
 ## Highlight Selection Logic
 

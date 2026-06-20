@@ -33,8 +33,11 @@ export const sheetColumns = [
   'Other',
   'ExplanationHtml',
   'TableData',
-  'Resource1',
-  'Resource2',
+  'Resource1Label',
+  'Resource1Value',
+  'Resource2Label',
+  'Resource2Value',
+  'TableName',
 ] as const;
 
 export type SheetColumn = (typeof sheetColumns)[number];
@@ -50,6 +53,11 @@ export interface TranslationEntry {
   language: LanguageOption;
   languageOther: string;
   text: string;
+}
+
+export interface ResourceEntry {
+  label: string;
+  value: string;
 }
 
 export const tableThemeOptions = ['plain', 'soft', 'grid'] as const;
@@ -74,7 +82,8 @@ export interface LinguaLogEntry {
   translations: TranslationEntry[];
   explanationHtml: string;
   table: EntryTable | null;
-  resources: string[];
+  tableName: string;
+  resources: ResourceEntry[];
 }
 
 type SheetRow = Record<SheetColumn, string>;
@@ -94,7 +103,8 @@ export function createEmptyEntry(): LinguaLogEntry {
     translations: [{ language: 'English', languageOther: '', text: '' }],
     explanationHtml: '',
     table: null,
-    resources: [''],
+    tableName: '',
+    resources: [{ label: '', value: '' }],
   };
 }
 
@@ -126,8 +136,11 @@ export function toSheetCells(entry: LinguaLogEntry): string[] {
   row.SourceTransliteration = entry.sourceTransliteration;
   row.ExplanationHtml = entry.explanationHtml;
   row.TableData = encodeTableData(entry.table);
-  row.Resource1 = entry.resources[0] ?? '';
-  row.Resource2 = entry.resources[1] ?? '';
+  row.Resource1Label = entry.resources[0]?.label ?? '';
+  row.Resource1Value = entry.resources[0]?.value ?? '';
+  row.Resource2Label = entry.resources[1]?.label ?? '';
+  row.Resource2Value = entry.resources[1]?.value ?? '';
+  row.TableName = entry.tableName;
 
   setLanguageText(row, entry.sourceLanguage, entry.sourceText, entry.sourceLanguageOther);
 
@@ -200,7 +213,18 @@ export function entryFromSheetCells(
     translations,
     explanationHtml: row.ExplanationHtml,
     table: decodeTableData(row.TableData),
-    resources: [row.Resource1, row.Resource2].filter((resource) => resource.trim().length > 0),
+    tableName: row.TableName.trim(),
+    resources: [
+      createResourceEntry(row.Resource1Label, row.Resource1Value),
+      createResourceEntry(row.Resource2Label, row.Resource2Value),
+    ].filter((resource) => resource.label.length > 0 || resource.value.length > 0),
+  };
+}
+
+function createResourceEntry(label: string, value: string): ResourceEntry {
+  return {
+    label: label.trim(),
+    value: value.trim(),
   };
 }
 

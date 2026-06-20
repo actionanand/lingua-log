@@ -239,11 +239,12 @@ button:focus-visible {
 .resource-row {
   align-items: end;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  grid-template-columns: minmax(8rem, 0.75fr) minmax(0, 1.5fr) auto;
 }
 
 .resource-row .field-label {
-  grid-column: 1 / -1;
+  grid-column: auto;
 }
 
 .primary-button,
