@@ -395,6 +395,8 @@
                       [attr.data-row-index]="rowIndex"
                       [attr.data-column-index]="columnIndex"
                       [innerHTML]="cell"
+                      (keyup)="captureTableSelection()"
+                      (mouseup)="captureTableSelection()"
                       (blur)="updateTableCell(rowIndex, columnIndex, tableCell.innerHTML)"
                       (paste)="pasteIntoTable($event, rowIndex, columnIndex)"
                       #tableCell

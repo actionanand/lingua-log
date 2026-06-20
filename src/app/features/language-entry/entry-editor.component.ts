@@ -135,6 +135,7 @@ export class EntryEditorComponent {
   private readonly startingEntry = createEmptyEntry();
   private readonly entryId = signal(this.startingEntry.entryId);
   private readonly createdAt = signal(this.startingEntry.createdAt);
+  private tableSelection: Range | null = null;
 
   protected readonly form: EntryForm = this.formBuilder.nonNullable.group({
     isProtected: this.startingEntry.isProtected,
@@ -306,8 +307,15 @@ export class EntryEditorComponent {
   }
 
   protected highlightTableSelection(): void {
+    this.restoreTableSelection();
     document.execCommand('styleWithCSS', false, 'true');
-    document.execCommand('hiliteColor', false, 'yellow');
+    const commandWorked = document.execCommand('hiliteColor', false, 'yellow');
+
+    if (!commandWorked) {
+      document.execCommand('backColor', false, 'yellow');
+    }
+
+    this.captureTableSelection();
     this.syncSelectedTableCell();
   }
 
@@ -355,6 +363,23 @@ export class EntryEditorComponent {
 
   protected keepTableSelection(event: MouseEvent): void {
     event.preventDefault();
+  }
+
+  protected captureTableSelection(): void {
+    const selection = document.getSelection();
+
+    if (!selection || selection.rangeCount === 0) {
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    const cellElement = getTableCellElement(range.commonAncestorContainer);
+
+    if (!cellElement) {
+      return;
+    }
+
+    this.tableSelection = range.cloneRange();
   }
 
   protected formatExplanation(command: RichTextCommand): void {
@@ -548,13 +573,21 @@ export class EntryEditorComponent {
     this.table.update((table) => (table ? normalizeTableForEditing(updater(table)) : table));
   }
 
+  private restoreTableSelection(): void {
+    const selection = document.getSelection();
+
+    if (!selection || !this.tableSelection) {
+      return;
+    }
+
+    selection.removeAllRanges();
+    selection.addRange(this.tableSelection);
+  }
+
   private syncSelectedTableCell(): void {
     const selection = document.getSelection();
     const selectedNode = selection?.anchorNode;
-    const cellElement =
-      selectedNode instanceof HTMLElement
-        ? selectedNode.closest<HTMLElement>('.table-cell-editor')
-        : selectedNode?.parentElement?.closest<HTMLElement>('.table-cell-editor');
+    const cellElement = selectedNode ? getTableCellElement(selectedNode) : null;
     const rowIndex = Number(cellElement?.dataset['rowIndex']);
     const columnIndex = Number(cellElement?.dataset['columnIndex']);
 
@@ -619,6 +652,12 @@ export class EntryEditorComponent {
       return { ...table, rows: nextRows };
     });
   }
+}
+
+function getTableCellElement(node: Node): HTMLElement | null {
+  return node instanceof HTMLElement
+    ? node.closest<HTMLElement>('.table-cell-editor')
+    : (node.parentElement?.closest<HTMLElement>('.table-cell-editor') ?? null);
 }
 
 function cloneTable(table: EntryTable | null): EntryTable | null {

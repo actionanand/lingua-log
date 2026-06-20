@@ -34,33 +34,17 @@ export const sheetColumns = [
   'ExplanationHtml',
   'TableData',
   'Resource1Label',
-  'Resource1',
+  'Resource1Value',
   'Resource2Label',
-  'Resource2',
+  'Resource2Value',
 ] as const;
 
 export type SheetColumn = (typeof sheetColumns)[number];
 
-const resourceLabelColumns = ['Resource1Label', 'Resource2Label'] as const;
-const protectedColumnsWithoutResourceLabels = sheetColumns.filter(
-  (column) => !resourceLabelColumns.includes(column as (typeof resourceLabelColumns)[number]),
-);
-const protectedColumnsWithoutTableDataAndResourceLabels = sheetColumns.filter(
-  (column) =>
-    column !== 'TableData' &&
-    !resourceLabelColumns.includes(column as (typeof resourceLabelColumns)[number]),
-);
-const unprotectedColumnsWithoutTableDataAndResourceLabels = sheetColumns.filter(
-  (column) =>
-    column !== 'Protected' &&
-    column !== 'TableData' &&
-    !resourceLabelColumns.includes(column as (typeof resourceLabelColumns)[number]),
-);
+const protectedColumnsWithoutTableData = sheetColumns.filter((column) => column !== 'TableData');
 const unprotectedColumnsWithTableData = sheetColumns.filter((column) => column !== 'Protected');
-const unprotectedColumnsWithTableDataWithoutResourceLabels = sheetColumns.filter(
-  (column) =>
-    column !== 'Protected' &&
-    !resourceLabelColumns.includes(column as (typeof resourceLabelColumns)[number]),
+const unprotectedColumnsWithoutTableData = sheetColumns.filter(
+  (column) => column !== 'Protected' && column !== 'TableData',
 );
 
 export interface TranslationEntry {
@@ -149,9 +133,9 @@ export function toSheetCells(entry: LinguaLogEntry): string[] {
   row.ExplanationHtml = minifyHtml(entry.explanationHtml);
   row.TableData = encodeTableData(entry.table);
   row.Resource1Label = entry.resources[0]?.label ?? '';
-  row.Resource1 = entry.resources[0]?.value ?? '';
+  row.Resource1Value = entry.resources[0]?.value ?? '';
   row.Resource2Label = entry.resources[1]?.label ?? '';
-  row.Resource2 = entry.resources[1]?.value ?? '';
+  row.Resource2Value = entry.resources[1]?.value ?? '';
 
   setLanguageText(row, entry.sourceLanguage, entry.sourceText, entry.sourceLanguageOther);
 
@@ -225,8 +209,8 @@ export function entryFromSheetCells(
     explanationHtml: minifyHtml(row.ExplanationHtml),
     table: decodeTableData(row.TableData),
     resources: [
-      createResourceEntry(row.Resource1Label, row.Resource1),
-      createResourceEntry(row.Resource2Label, row.Resource2),
+      createResourceEntry(row.Resource1Label, row.Resource1Value),
+      createResourceEntry(row.Resource2Label, row.Resource2Value),
     ].filter((resource) => resource.label.length > 0 || resource.value.length > 0),
   };
 }
@@ -250,12 +234,8 @@ function findSingleHeaderlessRecord(text: string, rows: string[][]): string[] | 
 
 function inferHeadersForRow(row: string[]): readonly string[] {
   if (isProtectedValue(row[3]) || languageOptions.includes(row[4] as LanguageOption)) {
-    if (row.length === protectedColumnsWithoutResourceLabels.length) {
-      return protectedColumnsWithoutResourceLabels;
-    }
-
-    if (row.length === protectedColumnsWithoutTableDataAndResourceLabels.length) {
-      return protectedColumnsWithoutTableDataAndResourceLabels;
+    if (row.length === protectedColumnsWithoutTableData.length) {
+      return protectedColumnsWithoutTableData;
     }
 
     return sheetColumns;
@@ -263,14 +243,10 @@ function inferHeadersForRow(row: string[]): readonly string[] {
 
   if (languageOptions.includes(row[3] as LanguageOption)) {
     if (looksLikeUnprotectedRowWithTableData(row)) {
-      if (row.length === unprotectedColumnsWithTableDataWithoutResourceLabels.length) {
-        return unprotectedColumnsWithTableDataWithoutResourceLabels;
-      }
-
       return unprotectedColumnsWithTableData;
     }
 
-    return unprotectedColumnsWithoutTableDataAndResourceLabels;
+    return unprotectedColumnsWithoutTableData;
   }
 
   return sheetColumns;
@@ -281,7 +257,6 @@ function looksLikeUnprotectedRowWithTableData(row: string[]): boolean {
 
   return (
     row.length === unprotectedColumnsWithTableData.length ||
-    row.length === unprotectedColumnsWithTableDataWithoutResourceLabels.length ||
     looksLikeTableData(row[tableDataIndex]) ||
     (isBlank(row[tableDataIndex] ?? '') && !isBlank(row[tableDataIndex + 1] ?? ''))
   );
