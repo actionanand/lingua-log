@@ -159,7 +159,7 @@
 
           @if (row.entry.table; as table) {
             <section class="entry-table-section" aria-label="Table">
-              <h3>Table</h3>
+              <h3>{{ row.entry.tableName || 'Table' }}</h3>
               <div
                 class="entry-table-wrap"
                 [class.table-theme-plain]="table.theme === 'plain'"
@@ -191,11 +191,16 @@
                 @for (resource of row.entry.resources; track resource; let index = $index) {
                   <li>
                     @if (resourceHref(resource); as href) {
-                      <a [href]="href" target="_blank" rel="noopener noreferrer" [title]="resource">
-                        {{ resourceLabel(index) }}
+                      <a
+                        [href]="href"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        [title]="resource.value"
+                      >
+                        {{ resourceLabel(resource, index) }}
                       </a>
                     } @else {
-                      <span [title]="resource">{{ resourceLabel(index) }}</span>
+                      <span [title]="resource.value">{{ resourceLabel(resource, index) }}</span>
                     }
                   </li>
                 }

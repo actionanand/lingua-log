@@ -15,6 +15,7 @@ import {
   EntryTable,
   LanguageOption,
   LinguaLogEntry,
+  ResourceEntry,
   languageOptions,
 } from '../language-entry/sheet-entry-codec';
 import { LanguageLogSheetRow, LanguageLogSheetService } from './language-log-sheet.service';
@@ -196,8 +197,8 @@ export class LanguageLogPageComponent {
     }
   }
 
-  protected resourceHref(resource: string): string {
-    const trimmedResource = resource.trim();
+  protected resourceHref(resource: ResourceEntry): string {
+    const trimmedResource = resource.value.trim();
 
     if (!trimmedResource) {
       return '';
@@ -214,8 +215,8 @@ export class LanguageLogPageComponent {
     return '';
   }
 
-  protected resourceLabel(index: number): string {
-    return `Resource ${index + 1}`;
+  protected resourceLabel(resource: ResourceEntry, index: number): string {
+    return resource.label || `Resource ${index + 1}`;
   }
 
   protected isBoldTableCell(table: EntryTable, rowIndex: number, columnIndex: number): boolean {
@@ -296,7 +297,8 @@ export class LanguageLogPageComponent {
       entry.sourceTransliteration,
       htmlToText(entry.explanationHtml),
       tableToText(entry.table),
-      ...entry.resources,
+      entry.tableName,
+      ...entry.resources.flatMap((resource) => [resource.label, resource.value]),
       ...entry.translations.flatMap((translation) => [
         translation.language,
         translation.languageOther,

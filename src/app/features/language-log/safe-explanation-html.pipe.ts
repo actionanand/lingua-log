@@ -99,6 +99,10 @@ function allowedStyleAttribute(node: HTMLElement): string {
     styles.push(`color: ${color}`);
   }
 
+  if (!color && backgroundColor === 'yellow') {
+    styles.push('color: #102114');
+  }
+
   if (backgroundColor) {
     styles.push(`background-color: ${backgroundColor}`);
   }

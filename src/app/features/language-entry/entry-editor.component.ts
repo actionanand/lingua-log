@@ -20,6 +20,7 @@ import {
   EntryTable,
   LanguageOption,
   LinguaLogEntry,
+  ResourceEntry,
   TableTheme,
   TranslationEntry,
   createEmptyEntry,
@@ -36,6 +37,11 @@ type TranslationForm = FormGroup<{
   text: FormControl<string>;
 }>;
 
+type ResourceForm = FormGroup<{
+  label: FormControl<string>;
+  value: FormControl<string>;
+}>;
+
 type EntryForm = FormGroup<{
   isProtected: FormControl<boolean>;
   sourceLanguage: FormControl<LanguageOption>;
@@ -44,7 +50,8 @@ type EntryForm = FormGroup<{
   sourceTransliteration: FormControl<string>;
   translations: FormArray<TranslationForm>;
   explanationHtml: FormControl<string>;
-  resources: FormArray<FormControl<string>>;
+  tableName: FormControl<string>;
+  resources: FormArray<ResourceForm>;
 }>;
 
 type RichTextCommand =
@@ -149,10 +156,9 @@ export class EntryEditorComponent {
       ),
     ),
     explanationHtml: this.startingEntry.explanationHtml,
+    tableName: this.startingEntry.tableName,
     resources: this.formBuilder.nonNullable.array(
-      this.startingEntry.resources.map((resource) =>
-        this.formBuilder.nonNullable.control(resource),
-      ),
+      this.startingEntry.resources.map((resource) => this.createResourceGroup(resource)),
     ),
   });
 
@@ -171,7 +177,7 @@ export class EntryEditorComponent {
     return this.form.controls.translations;
   }
 
-  protected get resources(): FormArray<FormControl<string>> {
+  protected get resources(): FormArray<ResourceForm> {
     return this.form.controls.resources;
   }
 
@@ -211,13 +217,13 @@ export class EntryEditorComponent {
 
   protected addResource(): void {
     if (this.resources.length < this.maxResources) {
-      this.resources.push(this.formBuilder.nonNullable.control(''));
+      this.resources.push(this.createResourceGroup({ label: '', value: '' }));
     }
   }
 
   protected removeResource(index: number): void {
     if (this.resources.length === 1) {
-      this.resources.at(index).setValue('');
+      this.resources.at(index).reset({ label: '', value: '' });
       return;
     }
 
@@ -480,9 +486,11 @@ export class EntryEditorComponent {
 
     this.resources.clear();
     const resources =
-      entry.resources.length > 0 ? entry.resources.slice(0, this.maxResources) : [''];
+      entry.resources.length > 0
+        ? entry.resources.slice(0, this.maxResources)
+        : [{ label: '', value: '' }];
     for (const resource of resources) {
-      this.resources.push(this.formBuilder.nonNullable.control(resource));
+      this.resources.push(this.createResourceGroup(resource));
     }
 
     this.form.patchValue({
@@ -491,6 +499,7 @@ export class EntryEditorComponent {
       sourceText: entry.sourceText,
       sourceTransliteration: entry.sourceTransliteration,
       explanationHtml: entry.explanationHtml,
+      tableName: entry.tableName,
       isProtected: entry.isProtected,
     });
 
@@ -521,9 +530,13 @@ export class EntryEditorComponent {
         .filter((translation) => translation.text.length > 0),
       explanationHtml: rawValue.explanationHtml,
       table: normalizeTable(this.table()),
+      tableName: rawValue.tableName.trim(),
       resources: rawValue.resources
-        .map((resource) => resource.trim())
-        .filter(Boolean)
+        .map((resource) => ({
+          label: resource.label.trim(),
+          value: resource.value.trim(),
+        }))
+        .filter((resource) => resource.label.length > 0 || resource.value.length > 0)
         .slice(0, this.maxResources),
     };
   }
@@ -541,6 +554,13 @@ export class EntryEditorComponent {
       language: translation.language,
       languageOther: translation.languageOther,
       text: translation.text,
+    });
+  }
+
+  private createResourceGroup(resource: ResourceEntry): ResourceForm {
+    return this.formBuilder.nonNullable.group({
+      label: resource.label,
+      value: resource.value,
     });
   }
 
@@ -934,6 +954,10 @@ function allowedStyleAttribute(node: HTMLElement): string {
 
   if (color) {
     styles.push(`color: ${color}`);
+  }
+
+  if (!color && backgroundColor === 'yellow') {
+    styles.push(`color: ${tableHighlightTextColor}`);
   }
 
   if (backgroundColor) {
