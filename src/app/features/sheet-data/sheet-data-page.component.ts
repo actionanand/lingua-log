@@ -181,7 +181,7 @@ export class SheetDataPageComponent {
   }
 
   protected errorMessage(error: unknown): string {
-    return error instanceof Error ? error.message : 'Could not load sheet data.';
+    return error instanceof Error ? error.message : 'Could not load notes overview.';
   }
 }
 

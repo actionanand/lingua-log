@@ -167,7 +167,7 @@ button:disabled {
 
 .data-table {
   border-collapse: collapse;
-  min-width: 66rem;
+  min-width: 58rem;
   width: 100%;
 }
 
@@ -225,6 +225,10 @@ button:disabled {
   background: var(--warning-bg);
   border: 1px solid var(--warning-border);
   color: var(--warning-text);
+  justify-content: center;
+  min-height: 1.75rem;
+  padding: 0;
+  width: 1.75rem;
 }
 
 .sentence-text,
@@ -259,25 +263,19 @@ button:disabled {
 }
 
 .date-chip {
-  background: var(--surface-soft);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  display: inline-grid;
-  gap: 0.05rem;
-  padding: 0.35rem 0.55rem;
+  display: inline-flex;
+  gap: 0.25rem;
 }
 
 .date-label {
-  color: var(--eyebrow);
-  font-size: 0.68rem;
-  font-weight: 850;
-  line-height: 1.15;
-  text-transform: uppercase;
-}
-
-.date-value {
   color: var(--text);
   font-weight: 750;
+}
+
+.date-value,
+.simple-date {
+  color: var(--text-muted);
+  font-weight: 500;
 }
 
 .pagination {
@@ -548,57 +546,20 @@ button:disabled {
 
 @media (max-width: 760px) {
   .table-scroll {
-    overflow: visible;
+    overflow-x: auto;
   }
 
   .data-table {
-    border-collapse: separate;
-    border-spacing: 0 0.75rem;
-    min-width: 0;
+    min-width: 50rem;
   }
 
-  .data-table thead {
-    clip: rect(0 0 0 0);
-    border: 0;
-    height: 1px;
-    margin: -1px;
-    overflow: hidden;
-    padding: 0;
-    position: absolute;
-    white-space: nowrap;
-    width: 1px;
-  }
-
-  .data-table tr {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    display: grid;
-    padding: 0.3rem 0;
-  }
-
-  .data-table tbody tr:nth-child(even) {
-    background: var(--surface);
-  }
-
+  .data-table th,
   .data-table td {
-    border-bottom: 0;
-    display: grid;
-    gap: 0.2rem;
-    grid-template-columns: minmax(7rem, 0.35fr) minmax(0, 1fr);
-    padding: 0.55rem 0.75rem;
+    padding: 0.6rem;
   }
 
-  .data-table td::before {
-    color: var(--eyebrow);
-    content: attr(data-label);
+  .data-table th {
     font-size: 0.72rem;
-    font-weight: 850;
-    text-transform: uppercase;
-  }
-
-  .action-buttons {
-    justify-content: flex-start;
   }
 }
 
@@ -630,10 +591,6 @@ button:disabled {
 }
 
 @media (max-width: 520px) {
-  .data-table td {
-    grid-template-columns: 1fr;
-  }
-
   .modal-backdrop {
     padding: 0.5rem;
   }

@@ -1,8 +1,8 @@
 <section class="sheet-data-shell" aria-labelledby="sheet-data-title">
   <header class="sheet-data-header">
     <div>
-      <p class="eyebrow">Sheet data</p>
-      <h1 id="sheet-data-title">All language notes</h1>
+      <p class="eyebrow">Overview</p>
+      <h1 id="sheet-data-title">Notes overview</h1>
       <p class="header-summary">
         Scan saved entries, open complete details, or copy an edited replacement row.
       </p>
@@ -15,13 +15,13 @@
   </header>
 
   @if (rowsResource.isLoading()) {
-    <section class="loader" aria-live="polite" aria-label="Loading sheet data">
+    <section class="loader" aria-live="polite" aria-label="Loading notes overview">
       <span></span>
-      <p>Loading sheet data from Google Sheets...</p>
+      <p>Loading notes overview from Google Sheets...</p>
     </section>
   } @else if (rowsResource.error(); as error) {
     <section class="empty-state" aria-live="polite">
-      <h2>Could not load sheet data</h2>
+      <h2>Could not load notes overview</h2>
       <p>{{ errorMessage(error) }}</p>
       <button type="button" class="primary-button" (click)="reload()">Try again</button>
     </section>
@@ -56,9 +56,8 @@
                 <td data-label="Item">
                   <span class="item-number">{{ displaySheetItem(row.rowNumber) }}</span>
                   @if (row.entry.isProtected) {
-                    <span class="protected-badge">
+                    <span class="protected-badge" aria-label="Protected">
                       <span class="material-symbols-rounded" aria-hidden="true">lock</span>
-                      Protected
                     </span>
                   }
                 </td>
@@ -87,12 +86,9 @@
                   <strong>{{ row.entry.resources.length }}</strong>
                 </td>
                 <td data-label="Last Updated">
-                  <span class="date-chip">
-                    <span class="date-label">Last Updated</span>
-                    <span class="date-value">{{
-                      formatDate(row.entry.updatedAt || row.entry.createdAt)
-                    }}</span>
-                  </span>
+                  <span class="simple-date">{{
+                    formatDate(row.entry.updatedAt || row.entry.createdAt)
+                  }}</span>
                 </td>
                 <td data-label="Action">
                   <div class="action-buttons">
@@ -123,7 +119,7 @@
       </div>
     </section>
 
-    <nav class="pagination" aria-label="Sheet data pagination">
+    <nav class="pagination" aria-label="Notes overview pagination">
       <div class="pagination-controls">
         <button
           type="button"
@@ -216,11 +212,11 @@
           <h3>Dates</h3>
           <div class="date-row">
             <span class="date-chip">
-              <span class="date-label">Created Date</span>
+              <span class="date-label">Created Date:</span>
               <span class="date-value">{{ formatDate(row.entry.createdAt) }}</span>
             </span>
             <span class="date-chip">
-              <span class="date-label">Last Updated</span>
+              <span class="date-label">Last Updated:</span>
               <span class="date-value">{{
                 formatDate(row.entry.updatedAt || row.entry.createdAt)
               }}</span>
