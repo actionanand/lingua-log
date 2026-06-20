@@ -1,63 +1,49 @@
 # LinguaLog Sheet Storage Logic
 
-This app stores one language log entry as one Google Sheet row. The app copies and reads tab-separated values so the row can move between the converter, Google Sheets, the sheet preview page, and the log page without changing shape.
+This app stores one language log entry as one Google Sheet row. The converter copies tab-separated values, Google Sheets stores those cells, and the log page reads the same shape back through gviz.
 
-## Current Sheet Header
+## Sheet Header
 
 Use this header order in Google Sheets:
 
 ```tsv
-EntryId	CreatedAt	UpdatedAt	Protected	SourceLanguage	SourceOtherLanguage	SourceText	SourceTransliteration	Tamil	English	Sanskrit	Hindi	Kannada	Malayalam	Telugu	French	OtherLanguage	Other	ExplanationHtml	TableData	Resource1Label	Resource1Value	Resource2Label	Resource2Value
+EntryId	CreatedAt	UpdatedAt	Protected	SourceLanguage	SourceOtherLanguage	SourceText	SourceTransliteration	Tamil	English	Sanskrit	Hindi	Kannada	Malayalam	Telugu	French	OtherLanguage	Other	ExplanationHtml	TableData	Resource1	Resource2
 ```
 
-## Main Row Fields
+`TableData` was added after `ExplanationHtml`. Headerless single-row paste still supports older rows that do not contain `TableData`.
 
-`EntryId` is a generated id used to keep an entry stable while editing.
+## Main Fields
 
-`CreatedAt` is the first created timestamp. `UpdatedAt` is regenerated each time the row is copied.
+`EntryId` is generated once and stays with the row.
 
-`Protected` stores `Yes` or `No`. The log page hides protected rows until the user logs in.
+`CreatedAt` stores the first created time. `UpdatedAt` is refreshed when the row is copied again.
 
-`SourceLanguage` stores the original language selected in the converter. If the source is `Other`, `SourceOtherLanguage` stores the temporary language name.
+`Protected` stores `Yes` or `No`. The log page hides protected rows until login.
 
-`SourceText` stores the original sentence. `SourceTransliteration` stores the optional reading aid for the original sentence.
+`SourceLanguage` stores the original sentence language. If it is `Other`, `SourceOtherLanguage` stores the temporary language name.
 
-The language columns (`Tamil`, `English`, `Sanskrit`, `Hindi`, `Kannada`, `Malayalam`, `Telugu`, `French`, `Other`) store the source sentence and translations by language. When a language is `Other`, `OtherLanguage` stores the temporary language name and `Other` stores the sentence text.
+`SourceText` stores the original sentence. `SourceTransliteration` stores the optional reading aid.
+
+The language columns store the source sentence and translations by language. When a language is `Other`, `OtherLanguage` stores the temporary language name and `Other` stores the sentence text.
+
+`Resource1` and `Resource2` store optional source references.
 
 ## Rich Text Explanation
 
-The explanation editor stores formatted notes as HTML in `ExplanationHtml`.
+Formatted explanation content is stored as sanitized HTML in `ExplanationHtml`.
 
-Before copying to the sheet, the app sanitizes and minifies the HTML. This removes unnecessary line breaks and spacing between tags so a value like this:
-
-```html
-Breakdown:<br />
-<ul>
-  <li><b>word</b> = meaning</li>
-</ul>
-```
-
-is copied as:
-
-```html
-Breakdown:<br />
-<ul>
-  <li><b>word</b> = meaning</li>
-</ul>
-```
-
-The explanation supports these common formats:
+The editor supports:
 
 - Bold, italic, and strikethrough.
 - Ordered and unordered lists.
-- One level of list indentation and outdent.
-- Text color and background color from the predefined color controls.
+- One level of list indent and outdent.
+- Predefined text colors and background colors.
 
-When the log page displays `ExplanationHtml`, it passes the value through the safe explanation HTML pipe before rendering. This keeps the stored HTML useful for formatting while avoiding arbitrary unsafe markup.
+When the log page displays this field, it sanitizes again through the safe HTML pipe before rendering.
 
-## Table Storage
+## Table Data
 
-The optional table is stored in `TableData` as compact JSON. The current shape is:
+The optional table is stored in `TableData` as compact JSON:
 
 ```json
 {
@@ -66,54 +52,62 @@ The optional table is stored in `TableData` as compact JSON. The current shape i
   "h": 1,
   "c": 0,
   "r": [
-    ["Header", "Value"],
-    ["Word", "Meaning"]
+    ["Word", "Meaning"],
+    ["<span style=\"background-color: yellow; color: #102114\">hola</span>", "hello"]
   ]
 }
 ```
 
-The keys mean:
+The keys are:
 
-- `v`: storage version. Current value is `1`.
-- `t`: table theme. Supported values are `plain`, `soft`, and `grid`.
-- `h`: bold first row. `1` means enabled, `0` means disabled.
-- `c`: bold first column. `1` means enabled, `0` means disabled.
-- `r`: table rows. Each inner array is one row.
+- `v`: table storage version. Current value is `1`.
+- `t`: theme. Supported values are `plain`, `soft`, and `grid`.
+- `h`: bold header row. `1` is enabled, `0` is disabled.
+- `c`: bold first column. `1` is enabled, `0` is disabled.
+- `r`: rows. Each inner array is one row.
 
-The table is limited to 7 columns and 13 rows. Empty trailing rows and empty trailing cells are removed before copying so the JSON stays small.
+Limits:
 
-Table cells may contain plain text or sanitized inline HTML. Highlighted words are stored inside a span, for example:
+- Maximum 7 columns.
+- Maximum 13 rows.
+- Empty trailing rows and cells are removed when copying.
+
+Table cells may contain sanitized inline HTML. The table highlighter wraps selected words in a span with yellow background and dark text:
 
 ```html
-<span style="background-color: yellow">highlighted words</span>
+<span style="background-color: yellow; color: #102114">highlighted text</span>
 ```
 
-When the app retrieves a row, it parses `TableData`, restores the table options, and renders the cells. Cell HTML is sanitized again before display.
+The dark text color is stored with the highlight so highlighted words remain readable in dark mode. On edit and `/sheet-preview`, the JSON is decoded back into the editor table and rendered through `safeTableCellHtml` after table-cell sanitization. On the log page, each cell is rendered through the same safe HTML pipe used by explanations.
 
-## Resources
+## Highlight Selection Logic
 
-Resources are stored as label/value pairs:
+The table highlight action does not use `document.execCommand`. Browser formatting commands were causing the first-click issue where the toolbar click removed the table selection and moved the cursor to the start of the cell.
 
-- `Resource1Label`
-- `Resource1Value`
-- `Resource2Label`
-- `Resource2Value`
+Instead, the editor:
 
-The label is optional. If it is blank, the log page displays a simple fallback label such as `Resource 1`. The value may be a URL, title, person, show, post, or other short source note. If the value looks like a URL, the log page renders it as a link that opens in a new tab.
+1. Captures the active table cell selection on mouseup or keyup.
+2. Prevents the Highlight button mousedown from stealing focus.
+3. Restores the captured range if the live selection was lost.
+4. Wraps the selected range in the highlight span.
+5. Syncs the changed cell HTML back into the table model.
+6. Reselects the highlighted text after Angular updates the table DOM.
 
-## Copy And Preview Flow
+## Copy And Paste
 
-The converter builds a `LinguaLogEntry` object from the form. `toSheetCells()` maps that object to the header order above. `toTsvRow()` escapes tabs, quotes, and new lines so complex explanation HTML and table JSON can be pasted safely into Google Sheets.
+`toTsvHeader()` copies the header above.
 
-The sheet preview page parses pasted TSV. A single row can be pasted with or without the header. Multiple rows should include the header so the app can map columns correctly.
+`toTsvRow()` maps the entry to the same header order and escapes tabs, quotes, and new lines. This allows rich explanation HTML and `TableData` JSON to stay inside the correct Google Sheet cells.
+
+The sheet preview page can parse one row with or without a header. Multiple rows should include the header.
 
 ## Google Sheet Retrieval
 
-The log page fetches the sheet through the Google Visualization API response. The first sheet row is treated as the header row when it matches known LinguaLog column names.
+The log page fetches gviz JSON from Google Sheets. The sheet service resolves headers from either the first row or gviz column labels. Each row is converted back into a `LinguaLogEntry`.
 
-Rows are converted back into `LinguaLogEntry` objects. The log page then:
+After retrieval, the app:
 
-- Filters protected rows unless the user is logged in.
-- Filters by selected language and source/translation mode.
+- Hides protected rows unless the user is logged in.
+- Filters by language and source/translation mode.
 - Searches source text, translations, explanation text, table text, and resources.
-- Displays explanation HTML and table cell HTML through the safe HTML rendering path.
+- Renders explanation HTML and table cell HTML through the safe HTML rendering path.

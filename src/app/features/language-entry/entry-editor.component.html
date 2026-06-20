@@ -394,7 +394,7 @@
                       aria-multiline="true"
                       [attr.data-row-index]="rowIndex"
                       [attr.data-column-index]="columnIndex"
-                      [innerHTML]="cell"
+                      [innerHTML]="cell | safeTableCellHtml"
                       (keyup)="captureTableSelection()"
                       (mouseup)="captureTableSelection()"
                       (blur)="updateTableCell(rowIndex, columnIndex, tableCell.innerHTML)"
@@ -471,30 +471,15 @@
 
     <div class="resource-list" formArrayName="resources">
       @for (resource of resources.controls; track resource; let index = $index) {
-        <div class="resource-row" [formGroupName]="index">
-          <div>
-            <label class="field-label" [for]="'resource-label-' + index">
-              Label {{ index + 1 }}
-            </label>
-            <input
-              [id]="'resource-label-' + index"
-              class="text-input"
-              type="text"
-              formControlName="label"
-              placeholder="Example: YouTube"
-            />
-          </div>
-
-          <div>
-            <label class="field-label" [for]="'resource-' + index">Resource {{ index + 1 }}</label>
-            <input
-              [id]="'resource-' + index"
-              class="text-input"
-              type="text"
-              formControlName="value"
-              placeholder="Optional source"
-            />
-          </div>
+        <div class="resource-row">
+          <label class="field-label" [for]="'resource-' + index">Resource {{ index + 1 }}</label>
+          <input
+            [id]="'resource-' + index"
+            class="text-input"
+            type="text"
+            [formControlName]="index"
+            placeholder="Optional source"
+          />
           <button
             type="button"
             class="icon-button"

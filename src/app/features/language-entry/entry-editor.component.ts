@@ -20,7 +20,6 @@ import {
   EntryTable,
   LanguageOption,
   LinguaLogEntry,
-  ResourceEntry,
   TableTheme,
   TranslationEntry,
   createEmptyEntry,
@@ -29,16 +28,12 @@ import {
   toTsvHeader,
   toTsvRow,
 } from './sheet-entry-codec';
+import { SafeTableCellHtmlPipe } from './safe-table-cell-html.pipe';
 
 type TranslationForm = FormGroup<{
   language: FormControl<LanguageOption>;
   languageOther: FormControl<string>;
   text: FormControl<string>;
-}>;
-
-type ResourceForm = FormGroup<{
-  label: FormControl<string>;
-  value: FormControl<string>;
 }>;
 
 type EntryForm = FormGroup<{
@@ -49,7 +44,7 @@ type EntryForm = FormGroup<{
   sourceTransliteration: FormControl<string>;
   translations: FormArray<TranslationForm>;
   explanationHtml: FormControl<string>;
-  resources: FormArray<ResourceForm>;
+  resources: FormArray<FormControl<string>>;
 }>;
 
 type RichTextCommand =
@@ -78,9 +73,14 @@ const backgroundColorOptions = [
   { label: 'Gray background', value: 'lightgray' },
 ] as const;
 
-const allowedTextColors = textColorOptions.map((color) => color.value);
+const tableHighlightTextColor = '#102114';
+const allowedTextColors = [
+  ...textColorOptions.map((color) => color.value),
+  tableHighlightTextColor,
+];
 const allowedBackgroundColors = backgroundColorOptions.map((color) => color.value);
 const colorAliases: Record<string, string> = {
+  'rgb(16, 33, 20)': tableHighlightTextColor,
   'rgb(0, 0, 255)': 'blue',
   'rgb(0, 128, 0)': 'green',
   'rgb(128, 0, 128)': 'purple',
@@ -95,7 +95,7 @@ const colorAliases: Record<string, string> = {
 
 @Component({
   selector: 'app-entry-editor',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, SafeTableCellHtmlPipe],
   templateUrl: './entry-editor.component.html',
   styleUrl: './entry-editor.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -150,7 +150,9 @@ export class EntryEditorComponent {
     ),
     explanationHtml: this.startingEntry.explanationHtml,
     resources: this.formBuilder.nonNullable.array(
-      this.startingEntry.resources.map((resource) => this.createResourceGroup(resource)),
+      this.startingEntry.resources.map((resource) =>
+        this.formBuilder.nonNullable.control(resource),
+      ),
     ),
   });
 
@@ -169,7 +171,7 @@ export class EntryEditorComponent {
     return this.form.controls.translations;
   }
 
-  protected get resources(): FormArray<ResourceForm> {
+  protected get resources(): FormArray<FormControl<string>> {
     return this.form.controls.resources;
   }
 
@@ -209,13 +211,13 @@ export class EntryEditorComponent {
 
   protected addResource(): void {
     if (this.resources.length < this.maxResources) {
-      this.resources.push(this.createResourceGroup({ label: '', value: '' }));
+      this.resources.push(this.formBuilder.nonNullable.control(''));
     }
   }
 
   protected removeResource(index: number): void {
     if (this.resources.length === 1) {
-      this.resources.at(index).reset({ label: '', value: '' });
+      this.resources.at(index).setValue('');
       return;
     }
 
@@ -227,19 +229,18 @@ export class EntryEditorComponent {
   }
 
   protected createTable(): void {
-    const columnCount = this.newTableColumnCount();
-
     this.table.set({
       theme: 'soft',
       boldHeader: true,
       boldFirstColumn: false,
-      rows: [createEmptyTableRow(columnCount)],
+      rows: [createEmptyTableRow(this.newTableColumnCount())],
     });
   }
 
   protected clearTable(): void {
     this.table.set(null);
     this.tablePasteText.set('');
+    this.tableSelection = null;
   }
 
   protected addTableRow(): void {
@@ -282,12 +283,11 @@ export class EntryEditorComponent {
 
   protected removeEmptyTableRows(): void {
     this.updateTable((table) => {
-      const filledRows = table.rows.filter((row) => row.some((cell) => cell.trim().length > 0));
+      const rows = table.rows.filter((row) => row.some((cell) => htmlToText(cell).trim()));
 
       return {
         ...table,
-        rows:
-          filledRows.length > 0 ? filledRows : [createEmptyTableRow(table.rows[0]?.length ?? 1)],
+        rows: rows.length > 0 ? rows : [createEmptyTableRow(table.rows[0]?.length ?? 1)],
       };
     });
   }
@@ -307,16 +307,21 @@ export class EntryEditorComponent {
   }
 
   protected highlightTableSelection(): void {
-    this.restoreTableSelection();
-    document.execCommand('styleWithCSS', false, 'true');
-    const commandWorked = document.execCommand('hiliteColor', false, 'yellow');
+    const range = this.currentTableRange();
 
-    if (!commandWorked) {
-      document.execCommand('backColor', false, 'yellow');
+    if (!range || range.collapsed) {
+      return;
     }
 
-    this.captureTableSelection();
-    this.syncSelectedTableCell();
+    const cellElement = getTableCellElement(range.commonAncestorContainer);
+
+    if (!cellElement) {
+      return;
+    }
+
+    const highlightedElement = highlightRange(range);
+    this.syncTableCellElement(cellElement);
+    this.selectHighlightedTableText(highlightedElement, cellElement.id);
   }
 
   protected updateTableCell(rowIndex: number, columnIndex: number, value: string): void {
@@ -339,26 +344,26 @@ export class EntryEditorComponent {
   }
 
   protected applyTablePaste(): void {
-    const parsedRows = parsePastedTable(this.tablePasteText());
+    const rows = parsePastedTable(this.tablePasteText());
 
-    if (parsedRows.length === 0) {
+    if (rows.length === 0) {
       return;
     }
 
-    this.setTableRows(parsedRows);
+    this.setTableRows(rows);
     this.tablePasteText.set('');
   }
 
   protected pasteIntoTable(event: ClipboardEvent, rowIndex: number, columnIndex: number): void {
     const pastedText = event.clipboardData?.getData('text/plain') ?? '';
-    const parsedRows = parsePastedTable(pastedText);
+    const rows = parsePastedTable(pastedText);
 
-    if (parsedRows.length === 0 || (parsedRows.length === 1 && parsedRows[0]?.length === 1)) {
+    if (rows.length === 0 || (rows.length === 1 && rows[0]?.length === 1)) {
       return;
     }
 
     event.preventDefault();
-    this.mergeTableRows(parsedRows, rowIndex, columnIndex);
+    this.mergeTableRows(rows, rowIndex, columnIndex);
   }
 
   protected keepTableSelection(event: MouseEvent): void {
@@ -373,9 +378,8 @@ export class EntryEditorComponent {
     }
 
     const range = selection.getRangeAt(0);
-    const cellElement = getTableCellElement(range.commonAncestorContainer);
 
-    if (!cellElement) {
+    if (!getTableCellElement(range.commonAncestorContainer)) {
       return;
     }
 
@@ -426,11 +430,10 @@ export class EntryEditorComponent {
     }
 
     const sanitizedHtml = sanitizeRichText(editor.nativeElement.innerHTML);
-    const minifiedHtml = minifyHtml(sanitizedHtml);
-    this.form.controls.explanationHtml.setValue(minifiedHtml);
+    this.form.controls.explanationHtml.setValue(sanitizedHtml);
 
-    if (editor.nativeElement.innerHTML !== minifiedHtml) {
-      editor.nativeElement.innerHTML = minifiedHtml;
+    if (editor.nativeElement.innerHTML !== sanitizedHtml) {
+      editor.nativeElement.innerHTML = sanitizedHtml;
     }
   }
 
@@ -455,7 +458,8 @@ export class EntryEditorComponent {
     this.entryId.set(entry.entryId);
     this.createdAt.set(entry.createdAt);
     this.sourceLanguage.set(entry.sourceLanguage);
-    this.table.set(cloneTable(entry.table));
+    this.table.set(entry.table ? normalizeTableForEditing(cloneTable(entry.table)) : null);
+    this.tableSelection = null;
     this.copyStatus.set('');
 
     this.translations.clear();
@@ -476,11 +480,9 @@ export class EntryEditorComponent {
 
     this.resources.clear();
     const resources =
-      entry.resources.length > 0
-        ? entry.resources.slice(0, this.maxResources)
-        : [{ label: '', value: '' }];
+      entry.resources.length > 0 ? entry.resources.slice(0, this.maxResources) : [''];
     for (const resource of resources) {
-      this.resources.push(this.createResourceGroup(resource));
+      this.resources.push(this.formBuilder.nonNullable.control(resource));
     }
 
     this.form.patchValue({
@@ -517,14 +519,11 @@ export class EntryEditorComponent {
           text: translation.text.trim(),
         }))
         .filter((translation) => translation.text.length > 0),
-      explanationHtml: minifyHtml(rawValue.explanationHtml),
+      explanationHtml: rawValue.explanationHtml,
       table: normalizeTable(this.table()),
       resources: rawValue.resources
-        .map((resource) => ({
-          label: resource.label.trim(),
-          value: resource.value.trim(),
-        }))
-        .filter((resource) => resource.label.length > 0 || resource.value.length > 0)
+        .map((resource) => resource.trim())
+        .filter(Boolean)
         .slice(0, this.maxResources),
     };
   }
@@ -542,13 +541,6 @@ export class EntryEditorComponent {
       language: translation.language,
       languageOther: translation.languageOther,
       text: translation.text,
-    });
-  }
-
-  private createResourceGroup(resource: ResourceEntry): ResourceForm {
-    return this.formBuilder.nonNullable.group({
-      label: resource.label,
-      value: resource.value,
     });
   }
 
@@ -573,25 +565,52 @@ export class EntryEditorComponent {
     this.table.update((table) => (table ? normalizeTableForEditing(updater(table)) : table));
   }
 
-  private restoreTableSelection(): void {
+  private currentTableRange(): Range | null {
     const selection = document.getSelection();
+    const liveRange = selection?.rangeCount ? selection.getRangeAt(0) : null;
 
-    if (!selection || !this.tableSelection) {
-      return;
+    if (liveRange && getTableCellElement(liveRange.commonAncestorContainer)) {
+      this.tableSelection = liveRange.cloneRange();
+      return liveRange;
     }
 
-    selection.removeAllRanges();
-    selection.addRange(this.tableSelection);
+    if (!this.tableSelection) {
+      return null;
+    }
+
+    selection?.removeAllRanges();
+    selection?.addRange(this.tableSelection);
+    return this.tableSelection;
   }
 
-  private syncSelectedTableCell(): void {
-    const selection = document.getSelection();
-    const selectedNode = selection?.anchorNode;
-    const cellElement = selectedNode ? getTableCellElement(selectedNode) : null;
-    const rowIndex = Number(cellElement?.dataset['rowIndex']);
-    const columnIndex = Number(cellElement?.dataset['columnIndex']);
+  private selectHighlightedTableText(element: HTMLElement, cellId: string): void {
+    selectElementContents(element);
 
-    if (!cellElement || Number.isNaN(rowIndex) || Number.isNaN(columnIndex)) {
+    queueMicrotask(() => {
+      const cellElement = document.getElementById(cellId);
+      const highlightSelector = [
+        'span[data-table-highlight="true"]',
+        'span[style*="background-color: yellow"]',
+        'span[style*="background-color:yellow"]',
+      ].join(', ');
+      const highlightedElement = cellElement?.querySelector<HTMLElement>(highlightSelector);
+
+      if (highlightedElement) {
+        selectElementContents(highlightedElement);
+        const selection = document.getSelection();
+
+        if (selection?.rangeCount) {
+          this.tableSelection = selection.getRangeAt(0).cloneRange();
+        }
+      }
+    });
+  }
+
+  private syncTableCellElement(cellElement: HTMLElement): void {
+    const rowIndex = Number(cellElement.dataset['rowIndex']);
+    const columnIndex = Number(cellElement.dataset['columnIndex']);
+
+    if (Number.isNaN(rowIndex) || Number.isNaN(columnIndex)) {
       return;
     }
 
@@ -654,19 +673,55 @@ export class EntryEditorComponent {
   }
 }
 
+function sanitizeRichText(html: string): string {
+  const template = document.createElement('template');
+  template.innerHTML = html;
+  const sanitized = Array.from(template.content.childNodes).map(sanitizeNode).join('');
+
+  return sanitized === '<br>' ? '' : sanitized;
+}
+
 function getTableCellElement(node: Node): HTMLElement | null {
   return node instanceof HTMLElement
     ? node.closest<HTMLElement>('.table-cell-editor')
     : (node.parentElement?.closest<HTMLElement>('.table-cell-editor') ?? null);
 }
 
-function cloneTable(table: EntryTable | null): EntryTable | null {
-  return table
-    ? {
-        ...table,
-        rows: table.rows.map((row) => [...row]),
-      }
-    : null;
+function highlightRange(range: Range): HTMLElement {
+  const highlightElement = document.createElement('span');
+  highlightElement.dataset['tableHighlight'] = 'true';
+  highlightElement.style.backgroundColor = 'yellow';
+  highlightElement.style.color = tableHighlightTextColor;
+
+  try {
+    range.surroundContents(highlightElement);
+  } catch {
+    const fragment = range.extractContents();
+    highlightElement.append(fragment);
+    range.insertNode(highlightElement);
+  }
+
+  return highlightElement;
+}
+
+function selectElementContents(element: HTMLElement): void {
+  const selection = document.getSelection();
+
+  if (!selection) {
+    return;
+  }
+
+  const range = document.createRange();
+  range.selectNodeContents(element);
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
+function cloneTable(table: EntryTable): EntryTable {
+  return {
+    ...table,
+    rows: table.rows.map((row) => [...row]),
+  };
 }
 
 function normalizeTable(table: EntryTable | null): EntryTable | null {
@@ -676,7 +731,10 @@ function normalizeTable(table: EntryTable | null): EntryTable | null {
 
   const rows = normalizeTableRows(table.rows).map((row) => row.map(sanitizeTableCellHtml));
 
-  if (rows.length === 0 || rows.every((row) => row.every((cell) => cell.trim().length === 0))) {
+  if (
+    rows.length === 0 ||
+    rows.every((row) => row.every((cell) => htmlToText(cell).trim() === ''))
+  ) {
     return null;
   }
 
@@ -734,11 +792,7 @@ function parseMarkdownTable(value: string): string[][] {
     .map((line) => line.trim())
     .filter((line) => line.includes('|'));
 
-  if (lines.length === 0) {
-    return [];
-  }
-
-  const rows = lines
+  return lines
     .filter((line) => !isMarkdownDividerRow(line))
     .map((line) =>
       line
@@ -747,9 +801,7 @@ function parseMarkdownTable(value: string): string[][] {
         .split('|')
         .map((cell) => cell.trim()),
     )
-    .filter((row) => row.length > 0 && row.some((cell) => cell.length > 0));
-
-  return rows.length > 0 ? rows : [];
+    .filter((row) => row.some((cell) => cell.length > 0));
 }
 
 function isMarkdownDividerRow(line: string): boolean {
@@ -768,16 +820,12 @@ function clampInteger(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, Math.trunc(value)));
 }
 
-function minifyHtml(value: string): string {
-  return value.replace(/\r?\n\s*/g, '').trim();
-}
-
 function sanitizeTableCellHtml(html: string): string {
   const template = document.createElement('template');
   template.innerHTML = html;
   const sanitized = Array.from(template.content.childNodes).map(sanitizeTableCellNode).join('');
 
-  return minifyHtml(sanitized === '<br>' ? '' : sanitized);
+  return sanitized === '<br>' ? '' : sanitized;
 }
 
 function sanitizeTableCellNode(node: ChildNode): string {
@@ -811,12 +859,11 @@ function sanitizeTableCellNode(node: ChildNode): string {
   }
 }
 
-function sanitizeRichText(html: string): string {
+function htmlToText(value: string): string {
   const template = document.createElement('template');
-  template.innerHTML = html;
-  const sanitized = Array.from(template.content.childNodes).map(sanitizeNode).join('');
+  template.innerHTML = value;
 
-  return sanitized === '<br>' ? '' : sanitized;
+  return template.content.textContent ?? '';
 }
 
 function sanitizeNode(node: ChildNode): string {

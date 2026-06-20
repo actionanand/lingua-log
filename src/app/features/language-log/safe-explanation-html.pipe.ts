@@ -1,7 +1,7 @@
 import { Pipe, PipeTransform, inject } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
-const allowedTextColors = ['green', 'red', 'blue', 'purple', 'darkorange'] as const;
+const allowedTextColors = ['green', 'red', 'blue', 'purple', 'darkorange', '#102114'] as const;
 const allowedBackgroundColors = [
   'lightgreen',
   'lightpink',
@@ -10,6 +10,7 @@ const allowedBackgroundColors = [
   'lightgray',
 ] as const;
 const colorAliases: Record<string, string> = {
+  'rgb(16, 33, 20)': '#102114',
   'rgb(0, 0, 255)': 'blue',
   'rgb(0, 128, 0)': 'green',
   'rgb(128, 0, 128)': 'purple',
