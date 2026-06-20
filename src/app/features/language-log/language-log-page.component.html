@@ -209,8 +209,16 @@
           }
 
           <footer class="entry-footer">
-            <span>Created Date: {{ formatDate(row.entry.createdAt) }}</span>
-            <span>Last Updated: {{ formatDate(row.entry.updatedAt || row.entry.createdAt) }}</span>
+            <span class="date-chip">
+              <span class="date-label">Created Date</span>
+              <span class="date-value">{{ formatDate(row.entry.createdAt) }}</span>
+            </span>
+            <span class="date-chip">
+              <span class="date-label">Last Updated</span>
+              <span class="date-value">{{
+                formatDate(row.entry.updatedAt || row.entry.createdAt)
+              }}</span>
+            </span>
           </footer>
         </article>
       }

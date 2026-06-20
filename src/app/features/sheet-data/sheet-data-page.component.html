@@ -1,0 +1,324 @@
+<section class="sheet-data-shell" aria-labelledby="sheet-data-title">
+  <header class="sheet-data-header">
+    <div>
+      <p class="eyebrow">Sheet data</p>
+      <h1 id="sheet-data-title">All language notes</h1>
+      <p class="header-summary">
+        Scan saved entries, open complete details, or copy an edited replacement row.
+      </p>
+    </div>
+
+    <button type="button" class="secondary-button reload-button" (click)="reload()">
+      <span class="material-symbols-rounded" aria-hidden="true">refresh</span>
+      Reload
+    </button>
+  </header>
+
+  @if (rowsResource.isLoading()) {
+    <section class="loader" aria-live="polite" aria-label="Loading sheet data">
+      <span></span>
+      <p>Loading sheet data from Google Sheets...</p>
+    </section>
+  } @else if (rowsResource.error(); as error) {
+    <section class="empty-state" aria-live="polite">
+      <h2>Could not load sheet data</h2>
+      <p>{{ errorMessage(error) }}</p>
+      <button type="button" class="primary-button" (click)="reload()">Try again</button>
+    </section>
+  } @else if (visibleRows().length === 0) {
+    <section class="empty-state">
+      <h2>No visible notes</h2>
+      <p>There are no public sheet entries to show right now.</p>
+    </section>
+  } @else {
+    <section class="table-summary" aria-live="polite">
+      <p>Showing {{ pagedRows().length }} of {{ visibleRows().length }} notes.</p>
+    </section>
+
+    <section class="data-table-panel" aria-label="All sheet notes">
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th scope="col">Item</th>
+              <th scope="col">Source</th>
+              <th scope="col">Sentence</th>
+              <th scope="col">Translations</th>
+              <th scope="col">Table</th>
+              <th scope="col">Resources</th>
+              <th scope="col">Last Updated</th>
+              <th scope="col">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of pagedRows(); track row.entry.entryId) {
+              <tr>
+                <td data-label="Item">
+                  <span class="item-number">{{ displaySheetItem(row.rowNumber) }}</span>
+                  @if (row.entry.isProtected) {
+                    <span class="protected-badge">
+                      <span class="material-symbols-rounded" aria-hidden="true">lock</span>
+                      Protected
+                    </span>
+                  }
+                </td>
+                <td data-label="Source">
+                  <span class="language-pill">{{ sourceDisplayLanguage(row.entry) }}</span>
+                </td>
+                <td data-label="Sentence">
+                  <strong class="sentence-text">{{ row.entry.sourceText }}</strong>
+                  @if (row.entry.sourceTransliteration) {
+                    <span class="transliteration-text">{{ row.entry.sourceTransliteration }}</span>
+                  }
+                </td>
+                <td data-label="Translations">
+                  <strong>{{ row.entry.translations.length }}</strong>
+                  <span class="muted">{{ translationSummary(row.entry) }}</span>
+                </td>
+                <td data-label="Table">
+                  @if (row.entry.table) {
+                    <strong>{{ tableTitle(row.entry) }}</strong>
+                    <span class="muted">{{ tableSize(row.entry.table) }}</span>
+                  } @else {
+                    <span class="muted">None</span>
+                  }
+                </td>
+                <td data-label="Resources">
+                  <strong>{{ row.entry.resources.length }}</strong>
+                </td>
+                <td data-label="Last Updated">
+                  <span class="date-chip">
+                    <span class="date-label">Last Updated</span>
+                    <span class="date-value">{{
+                      formatDate(row.entry.updatedAt || row.entry.createdAt)
+                    }}</span>
+                  </span>
+                </td>
+                <td data-label="Action">
+                  <div class="action-buttons">
+                    @if (authService.isLoggedIn()) {
+                      <button
+                        type="button"
+                        class="icon-action"
+                        (click)="openEdit(row)"
+                        [attr.aria-label]="'Edit sheet item ' + displaySheetItem(row.rowNumber)"
+                      >
+                        <span class="material-symbols-rounded" aria-hidden="true">edit</span>
+                      </button>
+                    }
+                    <button
+                      type="button"
+                      class="icon-action"
+                      (click)="openView(row)"
+                      [attr.aria-label]="'View sheet item ' + displaySheetItem(row.rowNumber)"
+                    >
+                      <span class="material-symbols-rounded" aria-hidden="true">visibility</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <nav class="pagination" aria-label="Sheet data pagination">
+      <div class="pagination-controls">
+        <button
+          type="button"
+          class="pagination-button previous-button"
+          (click)="previousPage()"
+          [disabled]="activePageIndex() === 0"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
+          Previous
+        </button>
+
+        <div class="page-center">
+          <span class="page-status">Page {{ activePageIndex() + 1 }} of {{ totalPages() }}</span>
+
+          @if (totalPages() > 1) {
+            <div class="page-number-list" aria-label="Page numbers">
+              @for (pageNumber of pageNumbers(); track pageNumber) {
+                <button
+                  type="button"
+                  class="page-number-button"
+                  [class.active]="pageNumber === activePageIndex()"
+                  [attr.aria-current]="pageNumber === activePageIndex() ? 'page' : null"
+                  (click)="goToPage(pageNumber)"
+                >
+                  {{ pageNumber + 1 }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        <button
+          type="button"
+          class="pagination-button next-button"
+          (click)="nextPage()"
+          [disabled]="activePageIndex() + 1 >= totalPages()"
+        >
+          Next
+          <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+        </button>
+      </div>
+
+      <div class="page-size-control">
+        <label class="page-size-label" for="sheet-data-page-size">Items</label>
+        <select
+          id="sheet-data-page-size"
+          class="select-input page-size-select"
+          [value]="pageSize()"
+          (change)="updatePageSize(pageSizeSelect.value)"
+          #pageSizeSelect
+        >
+          @for (size of pageSizeOptions; track size) {
+            <option [value]="size">{{ size }}</option>
+          }
+        </select>
+      </div>
+    </nav>
+  }
+</section>
+
+@if (viewingRow(); as row) {
+  <section class="modal-backdrop" role="presentation">
+    <button
+      type="button"
+      class="modal-backdrop-button"
+      (click)="closeView()"
+      aria-label="Close details"
+    ></button>
+    <div class="details-modal" role="dialog" aria-modal="true" aria-labelledby="details-title">
+      <header class="modal-header">
+        <div>
+          <p class="eyebrow">Item {{ displaySheetItem(row.rowNumber) }}</p>
+          <h2 id="details-title">{{ row.entry.sourceText }}</h2>
+        </div>
+        <button type="button" class="close-button" (click)="closeView()" aria-label="Close details">
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+      </header>
+
+      <div class="details-grid">
+        <section class="detail-section">
+          <h3>Source</h3>
+          <p class="language-pill">{{ sourceDisplayLanguage(row.entry) }}</p>
+          @if (row.entry.sourceTransliteration) {
+            <p class="transliteration-text">{{ row.entry.sourceTransliteration }}</p>
+          }
+        </section>
+
+        <section class="detail-section">
+          <h3>Dates</h3>
+          <div class="date-row">
+            <span class="date-chip">
+              <span class="date-label">Created Date</span>
+              <span class="date-value">{{ formatDate(row.entry.createdAt) }}</span>
+            </span>
+            <span class="date-chip">
+              <span class="date-label">Last Updated</span>
+              <span class="date-value">{{
+                formatDate(row.entry.updatedAt || row.entry.createdAt)
+              }}</span>
+            </span>
+          </div>
+        </section>
+      </div>
+
+      @if (row.entry.translations.length > 0) {
+        <section class="detail-section">
+          <h3>Translations</h3>
+          <div class="translation-list">
+            @for (translation of row.entry.translations; track $index) {
+              <article class="translation-chip">
+                <strong>{{ translationDisplayLanguage(translation) }}</strong>
+                <span>{{ translation.text }}</span>
+              </article>
+            }
+          </div>
+        </section>
+      }
+
+      @if (row.entry.explanationHtml) {
+        <section class="detail-section rich-detail">
+          <h3>Explanation</h3>
+          <div [innerHTML]="row.entry.explanationHtml | safeExplanationHtml"></div>
+        </section>
+      }
+
+      @if (row.entry.table; as table) {
+        <section class="detail-section">
+          <h3>{{ tableTitle(row.entry) }}</h3>
+          <div
+            class="entry-table-wrap"
+            [class.table-theme-plain]="table.theme === 'plain'"
+            [class.table-theme-soft]="table.theme === 'soft'"
+            [class.table-theme-grid]="table.theme === 'grid'"
+          >
+            <table class="entry-table-display">
+              <tbody>
+                @for (tableRow of table.rows; track $index; let rowIndex = $index) {
+                  <tr>
+                    @for (cell of tableRow; track $index; let columnIndex = $index) {
+                      <td
+                        [class.bold-cell]="isBoldTableCell(table, rowIndex, columnIndex)"
+                        [innerHTML]="cell | safeExplanationHtml"
+                      ></td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+      }
+
+      @if (row.entry.resources.length > 0) {
+        <section class="detail-section resources">
+          <h3>Resources</h3>
+          <ul>
+            @for (resource of row.entry.resources; track resource; let index = $index) {
+              <li>
+                @if (resourceHref(resource); as href) {
+                  <a [href]="href" target="_blank" rel="noopener noreferrer">
+                    {{ resourceLabel(resource, index) }}
+                  </a>
+                } @else {
+                  <span>{{ resourceLabel(resource, index) }}</span>
+                }
+              </li>
+            }
+          </ul>
+        </section>
+      }
+    </div>
+  </section>
+}
+
+@if (editingRow(); as row) {
+  <section class="modal-backdrop" role="presentation">
+    <button
+      type="button"
+      class="modal-backdrop-button"
+      (click)="closeEdit()"
+      aria-label="Close editor"
+    ></button>
+    <div class="edit-modal" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
+      <header class="modal-header">
+        <div>
+          <p class="eyebrow">Google Sheet row {{ row.rowNumber }}</p>
+          <h2 id="edit-modal-title">Edit and copy replacement row</h2>
+        </div>
+        <button type="button" class="close-button" (click)="closeEdit()" aria-label="Close editor">
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+      </header>
+
+      <app-entry-editor [heading]="'Edit row ' + row.rowNumber" [initialEntry]="row.entry" />
+    </div>
+  </section>
+}

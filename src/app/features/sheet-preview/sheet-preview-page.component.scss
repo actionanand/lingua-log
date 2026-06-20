@@ -110,13 +110,17 @@ th {
 }
 
 .secondary-button {
+  align-items: center;
   background: var(--accent-soft);
   border: 1px solid var(--accent-border);
   border-radius: 8px;
   color: var(--text);
   cursor: pointer;
+  display: inline-flex;
   font: inherit;
   font-weight: 700;
+  gap: 0.35rem;
+  justify-content: center;
   min-height: 2.4rem;
   padding: 0.5rem 0.8rem;
 }
