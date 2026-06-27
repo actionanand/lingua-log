@@ -201,7 +201,9 @@
   padding: 1.5rem clamp(1rem, 4vw, 3rem) 3rem;
 }
 
-@media (max-width: 560px) {
+@media (max-width: 560px),
+  (orientation: landscape) and (max-height: 560px) and (pointer: coarse),
+  (orientation: landscape) and (max-height: 560px) and (hover: none) {
   .app-header {
     align-items: stretch;
     flex-direction: column;
@@ -273,5 +275,57 @@
     top: calc(100% + 0.35rem);
     transform: translateX(-50%);
     width: min(22rem, calc(100vw - 2rem));
+  }
+}
+
+@media (orientation: landscape) and (max-height: 560px) and (pointer: coarse),
+  (orientation: landscape) and (max-height: 560px) and (hover: none) {
+  .app-header {
+    padding-block: 0.45rem;
+  }
+
+  .brand {
+    font-size: 1.1rem;
+  }
+
+  .header-inline-actions {
+    gap: 0.45rem;
+  }
+
+  .auth-button.mobile-search-button,
+  .menu-button {
+    min-height: 2.25rem;
+  }
+
+  .auth-button.mobile-search-button {
+    padding: 0.35rem 0.6rem;
+  }
+
+  .menu-button {
+    height: 2.25rem;
+    width: 2.25rem;
+  }
+
+  .menu-panel.open {
+    align-items: start;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .app-nav {
+    grid-template-columns: repeat(2, minmax(7rem, 1fr));
+  }
+
+  .auth-actions {
+    align-content: start;
+    gap: 0.4rem;
+  }
+
+  .auth-actions .auth-button {
+    min-height: 2.25rem;
+    padding: 0.35rem 0.6rem;
+  }
+
+  .app-main {
+    padding-top: 0.75rem;
   }
 }

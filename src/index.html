@@ -41,6 +41,7 @@
         document.documentElement.style.backgroundColor = isDark ? darkColor : lightColor;
         themeColor?.setAttribute('content', isDark ? darkColor : lightColor);
         colorScheme?.setAttribute('content', isDark ? 'dark light' : 'light dark');
+        window.LinguaLogAndroid?.setTheme(isDark ? 'dark' : 'light');
       })();
     </script>
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
