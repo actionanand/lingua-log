@@ -18,12 +18,14 @@ writeFileSync(
   mainActivityPath,
   `package ${appPackage};
 
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
 
@@ -36,10 +38,11 @@ public class MainActivity extends BridgeActivity {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     requestWindowFeature(Window.FEATURE_NO_TITLE);
-    applySystemBars(false);
+    boolean systemDarkTheme = isSystemDarkTheme();
+    applySystemBars(systemDarkTheme);
     super.onCreate(savedInstanceState);
     hideNativeTitleBar();
-    applySystemBars(false);
+    applySystemBars(systemDarkTheme);
 
     if (getBridge() != null && getBridge().getWebView() != null) {
       getBridge().getWebView().addJavascriptInterface(new ThemeBridge(), "LinguaLogAndroid");
@@ -50,6 +53,12 @@ public class MainActivity extends BridgeActivity {
     if (getSupportActionBar() != null) {
       getSupportActionBar().hide();
     }
+  }
+
+  private boolean isSystemDarkTheme() {
+    int nightMode =
+        getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+    return nightMode == Configuration.UI_MODE_NIGHT_YES;
   }
 
   private void applySystemBars(boolean darkTheme) {
@@ -88,11 +97,30 @@ public class MainActivity extends BridgeActivity {
     }
 
     decorView.setSystemUiVisibility(systemUiVisibility);
+    applySystemBarIconAppearance(window, darkTheme);
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
       window.setStatusBarContrastEnforced(false);
       window.setNavigationBarContrastEnforced(false);
     }
+  }
+
+  private void applySystemBarIconAppearance(Window window, boolean darkTheme) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+      return;
+    }
+
+    WindowInsetsController controller = window.getInsetsController();
+
+    if (controller == null) {
+      return;
+    }
+
+    int lightBars =
+        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+            | WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;
+
+    controller.setSystemBarsAppearance(darkTheme ? 0 : lightBars, lightBars);
   }
 
   private class ThemeBridge {
