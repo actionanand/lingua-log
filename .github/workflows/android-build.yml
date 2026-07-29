@@ -57,9 +57,6 @@ jobs:
       - name: Generate Android project
         run: npx cap add android
 
-      - name: Patch Android shell, splash, and biometric security
-        run: node scripts/patch-android-pip.mjs
-
       - name: Patch Gradle version and SDK values
         working-directory: android/app
         run: |
@@ -74,6 +71,9 @@ jobs:
 
       - name: Sync web assets
         run: npx cap sync android
+
+      - name: Patch Android shell, splash, and biometric security
+        run: node scripts/patch-android-pip.mjs
 
       - name: Inject app icon
         run: |

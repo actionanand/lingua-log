@@ -31,16 +31,11 @@ import android.util.Base64;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowInsetsController;
-import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
 
 import androidx.biometric.BiometricManager;
 import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowCompat;
-import androidx.core.view.WindowInsetsCompat;
 import com.getcapacitor.BridgeActivity;
 
 import java.nio.charset.StandardCharsets;
@@ -56,29 +51,37 @@ public class MainActivity extends BridgeActivity {
   private static final int APP_LIGHT_COLOR = Color.rgb(243, 247, 244);
   private static final int APP_DARK_COLOR = Color.rgb(15, 23, 19);
   private static final String BIOMETRIC_KEY_ALIAS = "lingualog_biometric_key";
+  private boolean darkMode;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
-    requestWindowFeature(Window.FEATURE_NO_TITLE);
-    boolean systemDarkTheme = isSystemDarkTheme();
-    applySystemBars(systemDarkTheme);
     super.onCreate(savedInstanceState);
-    hideNativeTitleBar();
-    applyWebViewSafeArea();
-    applySystemBars(systemDarkTheme);
+    darkMode = isSystemDarkTheme();
 
     if (getBridge() != null && getBridge().getWebView() != null) {
+      getBridge().getWebView().setBackgroundColor(
+        darkMode ? APP_DARK_COLOR : APP_LIGHT_COLOR
+      );
       getBridge().getWebView().addJavascriptInterface(new ThemeBridge(), "LinguaLogAndroid");
       getBridge().getWebView().addJavascriptInterface(
         new NativeBridge(),
         "LinguaLogNative"
       );
     }
+    applySystemBars(darkMode);
   }
 
-  private void hideNativeTitleBar() {
-    if (getSupportActionBar() != null) {
-      getSupportActionBar().hide();
+  @Override
+  public void onResume() {
+    super.onResume();
+    applySystemBars(darkMode);
+  }
+
+  @Override
+  public void onWindowFocusChanged(boolean hasFocus) {
+    super.onWindowFocusChanged(hasFocus);
+    if (hasFocus) {
+      applySystemBars(darkMode);
     }
   }
 
@@ -88,88 +91,47 @@ public class MainActivity extends BridgeActivity {
     return nightMode == Configuration.UI_MODE_NIGHT_YES;
   }
 
-  private void applyWebViewSafeArea() {
-    if (getBridge() == null || getBridge().getWebView() == null) {
-      return;
-    }
-
-    WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-    View webView = getBridge().getWebView();
-    ViewCompat.setOnApplyWindowInsetsListener(webView, (view, windowInsets) -> {
-      Insets safeInsets = windowInsets.getInsets(
-        WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout()
-      );
-      view.setPadding(
-        safeInsets.left,
-        safeInsets.top,
-        safeInsets.right,
-        safeInsets.bottom
-      );
-      return windowInsets;
-    });
-    ViewCompat.requestApplyInsets(webView);
-  }
-
   private void applySystemBars(boolean darkTheme) {
+    darkMode = darkTheme;
     Window window = getWindow();
     int shellColor = darkTheme ? APP_DARK_COLOR : APP_LIGHT_COLOR;
     window.setBackgroundDrawable(new ColorDrawable(shellColor));
-    window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-
-    View decorView = window.getDecorView();
-    int systemUiVisibility = decorView.getSystemUiVisibility();
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-      window.setStatusBarColor(shellColor);
-      window.setNavigationBarColor(shellColor);
-      View content = window.findViewById(android.R.id.content);
-
-      if (content != null) {
-        content.setBackgroundColor(shellColor);
-      }
+    window.getDecorView().setBackgroundColor(shellColor);
+    if (getBridge() != null && getBridge().getWebView() != null) {
+      getBridge().getWebView().setBackgroundColor(shellColor);
     }
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      if (darkTheme) {
-        systemUiVisibility &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-      } else {
-        systemUiVisibility |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-      }
-    }
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      if (darkTheme) {
-        systemUiVisibility &= ~View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
-      } else {
-        systemUiVisibility |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
-      }
-    }
-
-    decorView.setSystemUiVisibility(systemUiVisibility);
-    applySystemBarIconAppearance(window, darkTheme);
+    window.setStatusBarColor(shellColor);
+    window.setNavigationBarColor(shellColor);
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
       window.setStatusBarContrastEnforced(false);
       window.setNavigationBarContrastEnforced(false);
     }
-  }
 
-  private void applySystemBarIconAppearance(Window window, boolean darkTheme) {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+    View decorView = window.getDecorView();
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      WindowInsetsController controller = decorView.getWindowInsetsController();
+      if (controller != null) {
+        int lightFlags =
+            WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                | WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;
+        controller.setSystemBarsAppearance(darkTheme ? 0 : lightFlags, lightFlags);
+      }
       return;
     }
 
-    WindowInsetsController controller = window.getInsetsController();
-
-    if (controller == null) {
-      return;
+    int systemUiVisibility = decorView.getSystemUiVisibility();
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      systemUiVisibility = darkTheme
+        ? systemUiVisibility & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+        : systemUiVisibility | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
     }
-
-    int lightBars =
-        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
-            | WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;
-
-    controller.setSystemBarsAppearance(darkTheme ? 0 : lightBars, lightBars);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      systemUiVisibility = darkTheme
+        ? systemUiVisibility & ~View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+        : systemUiVisibility | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+    }
+    decorView.setSystemUiVisibility(systemUiVisibility);
   }
 
   private class ThemeBridge {
@@ -389,25 +351,22 @@ writeFileSync(colorsPath, colors);
 
 let styles = readOptionalFile(stylesPath);
 const shellStyleItems = [
-  ['windowActionBar', 'false'],
-  ['windowNoTitle', 'true'],
-  ['android:windowActionBar', 'false'],
-  ['android:windowNoTitle', 'true'],
   ['android:windowBackground', '@color/lingualog_shell_light'],
   ['android:statusBarColor', '@color/lingualog_shell_light'],
   ['android:navigationBarColor', '@color/lingualog_shell_light'],
   ['android:windowLightStatusBar', 'true'],
   ['android:windowLightNavigationBar', 'true'],
-  ['android:windowOptOutEdgeToEdgeEnforcement', 'true'],
 ];
 
-styles = ensureStyleItems(styles, 'AppTheme', shellStyleItems);
+styles = removeStyleItem(styles, 'AppTheme', 'android:windowOptOutEdgeToEdgeEnforcement');
+styles = removeStyleItem(
+  styles,
+  'AppTheme.NoActionBar',
+  'android:windowOptOutEdgeToEdgeEnforcement',
+);
+styles = ensureStyleParent(styles, 'AppTheme.NoActionBar', 'Theme.AppCompat.DayNight.NoActionBar');
 styles = ensureStyleItems(styles, 'AppTheme.NoActionBar', shellStyleItems);
 styles = ensureStyleItems(styles, 'AppTheme.NoActionBarLaunch', [
-  ['windowActionBar', 'false'],
-  ['windowNoTitle', 'true'],
-  ['android:windowActionBar', 'false'],
-  ['android:windowNoTitle', 'true'],
   ['android:windowBackground', '@drawable/lingualog_splash_screen'],
   ['android:statusBarColor', '@color/lingualog_splash_background'],
   ['android:navigationBarColor', '@color/lingualog_splash_background'],
@@ -551,6 +510,18 @@ function ensureStyleParent(source, styleName, parentName) {
       : `${attributes} parent="${parentName}"`;
 
     return `${namePart}${nextAttributes}${closeTag}`;
+  });
+}
+
+function removeStyleItem(source, styleName, itemName) {
+  const stylePattern = new RegExp(`(<style\\s+name="${styleName}"[^>]*>)([\\s\\S]*?)(</style>)`);
+
+  return source.replace(stylePattern, (_match, openTag, styleBody, closeTag) => {
+    const itemPattern = new RegExp(
+      `\\s*<item\\s+name="${escapeRegExp(itemName)}">[^<]*</item>`,
+      'g',
+    );
+    return `${openTag}${styleBody.replace(itemPattern, '')}${closeTag}`;
   });
 }
 
