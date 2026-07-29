@@ -36,6 +36,11 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'settings',
+    loadComponent: () =>
+      import('./features/settings/settings-page.component').then((m) => m.SettingsPageComponent),
+  },
+  {
     path: 'not-found',
     loadComponent: () =>
       import('./features/not-found/not-found-page.component').then((m) => m.NotFoundPageComponent),

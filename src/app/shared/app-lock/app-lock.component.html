@@ -1,0 +1,51 @@
+@if (lock.locked()) {
+  <main class="lock-overlay">
+    <section
+      class="lock-panel"
+      [class.wobble]="wobble()"
+      aria-labelledby="unlock-title"
+      (animationend)="wobble.set(false)"
+    >
+      <img ngSrc="lingua-log.png" width="76" height="76" alt="" priority />
+
+      <header>
+        <p class="eyebrow">Welcome back</p>
+        <h1 id="unlock-title">Unlock LinguaLog</h1>
+        <p>Enter your device PIN to continue.</p>
+      </header>
+
+      <form [formGroup]="unlockForm" (ngSubmit)="unlockWithPin()">
+        <label for="unlock-pin">PIN</label>
+        <input
+          #pinInput
+          id="unlock-pin"
+          formControlName="pin"
+          type="password"
+          inputmode="numeric"
+          autocomplete="current-password"
+          maxlength="8"
+          [class.error]="error()"
+          [attr.aria-invalid]="error() ? true : null"
+          (input)="clearError()"
+        />
+
+        @if (error()) {
+          <p class="form-error" role="alert">{{ error() }}</p>
+        }
+
+        <button class="primary-button" type="submit" [disabled]="verifying()">
+          <span class="material-symbols-rounded" aria-hidden="true">lock_open</span>
+          {{ verifying() ? 'Checking...' : 'Unlock' }}
+        </button>
+      </form>
+
+      @if (settings.settings().biometricEnabled && security.biometricAvailable) {
+        <button class="fingerprint-button" type="button" (click)="useFingerprint()">
+          <span class="material-symbols-rounded" aria-hidden="true">fingerprint</span>
+          Use fingerprint
+        </button>
+      }
+      <p class="recovery-note">Forgotten PINs require clearing this app's local data.</p>
+    </section>
+  </main>
+}

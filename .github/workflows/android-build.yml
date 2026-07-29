@@ -57,7 +57,7 @@ jobs:
       - name: Generate Android project
         run: npx cap add android
 
-      - name: Patch Android native shell
+      - name: Patch Android shell, splash, and biometric security
         run: node scripts/patch-android-pip.mjs
 
       - name: Patch Gradle version and SDK values

@@ -1,136 +1,154 @@
-<header class="app-header">
-  <div class="header-topline">
-    <a class="brand" routerLink="/logs" aria-label="LinguaLog home" (click)="closeMenu()">
-      {{ title() }}
-    </a>
+<div class="app-shell" [attr.inert]="appLock.locked() ? '' : null">
+  <header class="app-header">
+    <div class="header-topline">
+      <a class="brand" routerLink="/logs" aria-label="LinguaLog home" (click)="closeMenu()">
+        {{ title() }}
+      </a>
 
-    <div class="header-inline-actions">
-      <button
-        type="button"
-        class="auth-button search-button mobile-search-button"
-        (click)="toggleSearch()"
-        [attr.aria-expanded]="isSearchOpen()"
-        aria-controls="log-search-popover"
-      >
-        <span class="material-symbols-rounded" aria-hidden="true">search</span>
-        Search
-      </button>
-
-      @if (authService.isLoggedIn()) {
-        <span class="greeting mobile-greeting">Hi, {{ authService.displayName() }}</span>
-      }
-
-      <button
-        type="button"
-        class="menu-button"
-        (click)="toggleMenu()"
-        [attr.aria-expanded]="isMenuOpen()"
-        aria-controls="primary-menu"
-        aria-label="Toggle navigation menu"
-      >
-        <span class="material-symbols-rounded" aria-hidden="true">
-          {{ isMenuOpen() ? 'close' : 'menu' }}
-        </span>
-      </button>
-    </div>
-  </div>
-
-  <div id="primary-menu" class="menu-panel" [class.open]="isMenuOpen()">
-    <nav class="app-nav" aria-label="Primary navigation">
-      <a routerLink="/logs" routerLinkActive="active-link" (click)="closeMenu()">Logs</a>
-      <a routerLink="/sheet-data" routerLinkActive="active-link" (click)="closeMenu()">Overview</a>
-      @if (authService.isLoggedIn()) {
-        <a routerLink="/converter" routerLinkActive="active-link" (click)="closeMenu()"
-          >Converter</a
-        >
-        <a routerLink="/sheet-preview" routerLinkActive="active-link" (click)="closeMenu()"
-          >Sheet Preview</a
-        >
-      }
-    </nav>
-
-    <div class="auth-actions">
-      @if (authService.isLoggedIn()) {
-        <span class="greeting desktop-greeting">Hi, {{ authService.displayName() }}</span>
-      }
-
-      <button
-        type="button"
-        class="auth-button search-button desktop-search-button"
-        (click)="toggleSearch()"
-        [attr.aria-expanded]="isSearchOpen()"
-        aria-controls="log-search-popover"
-      >
-        <span class="material-symbols-rounded" aria-hidden="true">search</span>
-        Search
-      </button>
-
-      @if (authService.isLoggedIn()) {
-        <button type="button" class="auth-button" (click)="logout()">
-          <span class="material-symbols-rounded" aria-hidden="true">logout</span>
-          Logout
-        </button>
-      } @else {
-        <button type="button" class="auth-button primary-auth" (click)="openLogin()">
-          <span class="material-symbols-rounded" aria-hidden="true">login</span>
-          Login
-        </button>
-      }
-
-      <button
-        type="button"
-        class="auth-button theme-button"
-        (click)="cycleTheme()"
-        [attr.aria-label]="'Theme mode: ' + themeService.label() + '. Change theme mode'"
-      >
-        <span class="material-symbols-rounded" aria-hidden="true">{{ themeService.icon() }}</span>
-        {{ themeService.label() }}
-      </button>
-    </div>
-  </div>
-
-  @if (isSearchOpen()) {
-    <section id="log-search-popover" class="search-popover" aria-label="Search language log">
-      <div class="search-popover-header">
-        <label class="search-label" for="log-search-input">Search language content</label>
+      <div class="header-inline-actions">
         <button
           type="button"
-          class="close-search-button"
-          (click)="closeSearch()"
-          aria-label="Close search"
+          class="auth-button search-button mobile-search-button"
+          (click)="toggleSearch()"
+          [attr.aria-expanded]="isSearchOpen()"
+          aria-controls="log-search-popover"
         >
-          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+          <span class="material-symbols-rounded" aria-hidden="true">search</span>
+          Search
+        </button>
+
+        @if (authService.isLoggedIn()) {
+          <span class="greeting mobile-greeting">Hi, {{ authService.displayName() }}</span>
+        }
+
+        <button
+          type="button"
+          class="menu-button"
+          (click)="toggleMenu()"
+          [attr.aria-expanded]="isMenuOpen()"
+          aria-controls="primary-menu"
+          aria-label="Toggle navigation menu"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">
+            {{ isMenuOpen() ? 'close' : 'menu' }}
+          </span>
         </button>
       </div>
-      <div class="search-field">
-        <span class="material-symbols-rounded" aria-hidden="true">search</span>
-        <input
-          id="log-search-input"
-          type="text"
-          [value]="logSearchService.query()"
-          (input)="updateSearch(searchInput.value)"
-          placeholder="Search sentences, languages, notes"
-          #searchInput
-        />
-        @if (logSearchService.query()) {
+    </div>
+
+    <div id="primary-menu" class="menu-panel" [class.open]="isMenuOpen()">
+      <nav class="app-nav" aria-label="Primary navigation">
+        <a routerLink="/logs" routerLinkActive="active-link" (click)="closeMenu()">Logs</a>
+        <a routerLink="/sheet-data" routerLinkActive="active-link" (click)="closeMenu()"
+          >Overview</a
+        >
+        @if (authService.isLoggedIn()) {
+          <a routerLink="/converter" routerLinkActive="active-link" (click)="closeMenu()"
+            >Converter</a
+          >
+          <a routerLink="/sheet-preview" routerLinkActive="active-link" (click)="closeMenu()"
+            >Sheet Preview</a
+          >
+        }
+      </nav>
+
+      <div class="auth-actions">
+        @if (authService.isLoggedIn()) {
+          <span class="greeting desktop-greeting">Hi, {{ authService.displayName() }}</span>
+        }
+
+        <button
+          type="button"
+          class="auth-button search-button desktop-search-button"
+          (click)="toggleSearch()"
+          [attr.aria-expanded]="isSearchOpen()"
+          aria-controls="log-search-popover"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">search</span>
+          Search
+        </button>
+
+        <a
+          routerLink="/settings"
+          routerLinkActive="active-link"
+          class="auth-button settings-button"
+          aria-label="Open security settings"
+          title="Security settings"
+          (click)="closeMenu()"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">settings</span>
+          <span class="settings-label">Settings</span>
+        </a>
+
+        @if (authService.isLoggedIn()) {
+          <button type="button" class="auth-button" (click)="logout()">
+            <span class="material-symbols-rounded" aria-hidden="true">logout</span>
+            Logout
+          </button>
+        } @else {
+          <button type="button" class="auth-button primary-auth" (click)="openLogin()">
+            <span class="material-symbols-rounded" aria-hidden="true">login</span>
+            Login
+          </button>
+        }
+
+        <button
+          type="button"
+          class="auth-button theme-button"
+          (click)="cycleTheme()"
+          [attr.aria-label]="'Theme mode: ' + themeService.label() + '. Change theme mode'"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">{{ themeService.icon() }}</span>
+          {{ themeService.label() }}
+        </button>
+      </div>
+    </div>
+
+    @if (isSearchOpen()) {
+      <section id="log-search-popover" class="search-popover" aria-label="Search language log">
+        <div class="search-popover-header">
+          <label class="search-label" for="log-search-input">Search language content</label>
           <button
             type="button"
-            class="clear-search-button"
-            (click)="clearSearch()"
-            aria-label="Clear search"
+            class="close-search-button"
+            (click)="closeSearch()"
+            aria-label="Close search"
           >
             <span class="material-symbols-rounded" aria-hidden="true">close</span>
           </button>
-        }
-      </div>
-    </section>
+        </div>
+        <div class="search-field">
+          <span class="material-symbols-rounded" aria-hidden="true">search</span>
+          <input
+            id="log-search-input"
+            type="text"
+            [value]="logSearchService.query()"
+            (input)="updateSearch(searchInput.value)"
+            placeholder="Search sentences, languages, notes"
+            #searchInput
+          />
+          @if (logSearchService.query()) {
+            <button
+              type="button"
+              class="clear-search-button"
+              (click)="clearSearch()"
+              aria-label="Clear search"
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">close</span>
+            </button>
+          }
+        </div>
+      </section>
+    }
+  </header>
+
+  <main class="app-main">
+    <router-outlet />
+  </main>
+
+  @if (isLoginOpen()) {
+    <app-login-dialog (closed)="closeLogin()" />
   }
-</header>
+</div>
 
-<main class="app-main">
-  <router-outlet />
-</main>
-
-@if (isLoginOpen()) {
-  <app-login-dialog (closed)="closeLogin()" />
-}
+<app-lock />

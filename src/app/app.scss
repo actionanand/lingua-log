@@ -60,8 +60,11 @@
 }
 
 .app-nav a {
+  align-items: center;
   border-radius: 8px;
   color: var(--text-muted);
+  display: inline-flex;
+  gap: 0.3rem;
   font-weight: 700;
   min-height: 2.4rem;
   padding: 0.55rem 0.8rem;
@@ -123,6 +126,20 @@
 
 .theme-button {
   min-width: 5.6rem;
+}
+
+.settings-button {
+  text-decoration: none;
+}
+
+.settings-button.active-link {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.settings-label {
+  display: none;
 }
 
 .search-popover {
@@ -256,6 +273,10 @@
   .auth-button {
     justify-content: flex-start;
     width: 100%;
+  }
+
+  .settings-label {
+    display: inline;
   }
 
   .header-inline-actions .auth-button {

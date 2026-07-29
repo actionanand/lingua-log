@@ -1,0 +1,165 @@
+:host {
+  position: relative;
+  z-index: 1000;
+}
+
+.lock-overlay {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  min-height: 100dvh;
+  padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
+    max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+  place-items: center;
+  color: var(--text);
+  background: var(--app-bg);
+}
+
+.lock-panel {
+  display: grid;
+  width: min(100%, 23rem);
+  gap: 1rem;
+  padding: 1.4rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 20px 50px var(--shadow);
+  text-align: center;
+}
+
+.lock-panel > img {
+  width: 4.75rem;
+  height: 4.75rem;
+  margin: 0 auto;
+  object-fit: contain;
+}
+
+.lock-panel header p {
+  margin: 0.3rem 0 0;
+  color: var(--text-muted);
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--eyebrow);
+  font-size: 0.72rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  color: var(--heading);
+  font-size: 1.5rem;
+}
+
+form {
+  display: grid;
+  gap: 0.55rem;
+  text-align: left;
+}
+
+label {
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+input {
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  color: var(--text);
+  background: var(--surface-soft);
+  font-size: 1.05rem;
+  letter-spacing: 0.12em;
+}
+
+input.error {
+  border-color: var(--danger-text);
+}
+
+input:focus-visible,
+button:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.primary-button,
+.fingerprint-button {
+  display: flex;
+  min-height: 2.65rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.8rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.primary-button {
+  border: 1px solid var(--accent);
+  color: var(--accent-contrast);
+  background: var(--accent);
+}
+
+.fingerprint-button {
+  border: 1px solid var(--accent-border);
+  color: var(--text);
+  background: var(--accent-soft);
+}
+
+.primary-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.form-error {
+  margin: 0;
+  color: var(--danger-text);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.recovery-note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+.wobble {
+  animation: pin-wobble 0.5s ease;
+}
+
+@keyframes pin-wobble {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20% {
+    transform: translateX(-0.65rem);
+  }
+
+  40% {
+    transform: translateX(0.5rem);
+  }
+
+  60% {
+    transform: translateX(-0.35rem);
+  }
+
+  80% {
+    transform: translateX(0.2rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wobble {
+    animation: none;
+  }
+}

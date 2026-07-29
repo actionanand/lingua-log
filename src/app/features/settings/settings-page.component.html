@@ -1,0 +1,158 @@
+<section class="settings-page" aria-labelledby="settings-title">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">Device preferences</p>
+      <h1 id="settings-title">Settings</h1>
+      <p>Protect LinguaLog on this device with a local PIN and fingerprint unlock.</p>
+    </div>
+    <a routerLink="/logs" class="close-button" aria-label="Close settings">
+      <span class="material-symbols-rounded" aria-hidden="true">close</span>
+    </a>
+  </header>
+
+  <section class="settings-section" aria-labelledby="security-title">
+    <header class="section-heading">
+      <span class="section-icon material-symbols-rounded" aria-hidden="true">shield_lock</span>
+      <div>
+        <h2 id="security-title">App security</h2>
+        <p>Your PIN verifier stays on this device. The PIN itself is never stored.</p>
+      </div>
+    </header>
+
+    <div class="setting-list">
+      <div class="setting-row">
+        <span>
+          <strong>PIN protection</strong>
+          <small>{{ settings.settings().pinEnabled ? 'Enabled' : 'Not configured' }}</small>
+        </span>
+        <button class="action-button primary" type="button" (click)="openPinDialog()">
+          <span class="material-symbols-rounded" aria-hidden="true">key</span>
+          {{ settings.settings().pinEnabled ? 'Change PIN' : 'Enable PIN' }}
+        </button>
+      </div>
+
+      <div class="setting-row">
+        <span>
+          <strong>Fingerprint unlock</strong>
+          <small>{{ biometricDescription() }}</small>
+        </span>
+        <button
+          class="switch"
+          type="button"
+          role="switch"
+          aria-label="Fingerprint unlock"
+          [disabled]="!security.biometricAvailable || !settings.settings().pinEnabled"
+          [attr.aria-checked]="settings.settings().biometricEnabled"
+          [class.on]="settings.settings().biometricEnabled"
+          (click)="toggleBiometric()"
+        >
+          <span aria-hidden="true"></span>
+        </button>
+      </div>
+    </div>
+
+    @if (settings.settings().pinEnabled) {
+      <div class="security-actions">
+        <button class="action-button" type="button" (click)="lock.lockNow()">
+          <span class="material-symbols-rounded" aria-hidden="true">lock</span>
+          Lock now
+        </button>
+        <button class="action-button danger" type="button" (click)="removeDialogOpen.set(true)">
+          <span class="material-symbols-rounded" aria-hidden="true">lock_open</span>
+          Disable PIN
+        </button>
+      </div>
+    }
+  </section>
+</section>
+
+@if (message()) {
+  <p class="settings-toast" role="status" aria-live="polite">{{ message() }}</p>
+}
+
+@if (pinDialogOpen()) {
+  <div class="dialog-backdrop">
+    <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="pin-dialog-title">
+      <header>
+        <div>
+          <p class="eyebrow">Device security</p>
+          <h2 id="pin-dialog-title">
+            {{ settings.settings().pinEnabled ? 'Change PIN' : 'Create a PIN' }}
+          </h2>
+        </div>
+        <button type="button" aria-label="Close PIN dialog" (click)="closePinDialog()">
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+      </header>
+
+      <p class="dialog-copy">
+        Use 4 to 8 digits. Changing the PIN will turn fingerprint unlock off until you enable it
+        again. This PIN cannot be recovered through the optional LinguaLog login.
+      </p>
+
+      <form [formGroup]="pinForm" (ngSubmit)="savePin()">
+        <label for="new-pin">New PIN</label>
+        <input
+          id="new-pin"
+          formControlName="pin"
+          type="password"
+          inputmode="numeric"
+          autocomplete="new-password"
+          minlength="4"
+          maxlength="8"
+          (input)="formError.set('')"
+        />
+
+        <label for="confirm-pin">Confirm PIN</label>
+        <input
+          id="confirm-pin"
+          formControlName="confirmation"
+          type="password"
+          inputmode="numeric"
+          autocomplete="new-password"
+          minlength="4"
+          maxlength="8"
+          (input)="formError.set('')"
+        />
+
+        @if (formError()) {
+          <p class="form-error" role="alert">{{ formError() }}</p>
+        }
+
+        <footer>
+          <button class="action-button" type="button" (click)="closePinDialog()">Cancel</button>
+          <button class="action-button primary" type="submit" [disabled]="savingPin()">
+            {{ savingPin() ? 'Saving...' : 'Save PIN' }}
+          </button>
+        </footer>
+      </form>
+    </section>
+  </div>
+}
+
+@if (removeDialogOpen()) {
+  <div class="dialog-backdrop">
+    <section
+      class="dialog compact-dialog"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="disable-pin-title"
+    >
+      <header>
+        <div>
+          <p class="eyebrow">Device security</p>
+          <h2 id="disable-pin-title">Disable PIN protection?</h2>
+        </div>
+      </header>
+      <p class="dialog-copy">Fingerprint unlock will also be removed from this device.</p>
+      <footer>
+        <button class="action-button" type="button" (click)="removeDialogOpen.set(false)">
+          Cancel
+        </button>
+        <button class="action-button danger" type="button" (click)="removePin()">
+          Disable PIN
+        </button>
+      </footer>
+    </section>
+  </div>
+}

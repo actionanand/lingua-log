@@ -1,17 +1,24 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { AppLockService } from './core/app-lock.service';
 import { AuthService } from './core/auth.service';
 import { LogSearchService } from './core/log-search.service';
 import { ThemeService } from './core/theme.service';
+import { AppLockComponent } from './shared/app-lock/app-lock.component';
 import { LoginDialogComponent } from './shared/login-dialog/login-dialog.component';
 
 @Component({
   selector: 'app-root',
-  imports: [LoginDialogComponent, RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [AppLockComponent, LoginDialogComponent, RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './app.html',
   styleUrl: './app.scss',
+  host: {
+    '(document:visibilitychange)': 'onVisibilityChange()',
+    '(window:biometric-success)': 'onBiometricSuccess()',
+  },
 })
 export class App {
+  protected readonly appLock = inject(AppLockService);
   protected readonly authService = inject(AuthService);
   protected readonly logSearchService = inject(LogSearchService);
   protected readonly themeService = inject(ThemeService);
@@ -64,5 +71,13 @@ export class App {
     this.authService.logout();
     this.closeMenu();
     void this.router.navigateByUrl('/logs');
+  }
+
+  protected onVisibilityChange(): void {
+    this.appLock.handleVisibilityChange();
+  }
+
+  protected onBiometricSuccess(): void {
+    this.appLock.unlock();
   }
 }
