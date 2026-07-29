@@ -37,6 +37,10 @@ import android.webkit.JavascriptInterface;
 import androidx.biometric.BiometricManager;
 import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import com.getcapacitor.BridgeActivity;
 
 import java.nio.charset.StandardCharsets;
@@ -60,6 +64,7 @@ public class MainActivity extends BridgeActivity {
     applySystemBars(systemDarkTheme);
     super.onCreate(savedInstanceState);
     hideNativeTitleBar();
+    applyWebViewSafeArea();
     applySystemBars(systemDarkTheme);
 
     if (getBridge() != null && getBridge().getWebView() != null) {
@@ -81,6 +86,28 @@ public class MainActivity extends BridgeActivity {
     int nightMode =
         getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
     return nightMode == Configuration.UI_MODE_NIGHT_YES;
+  }
+
+  private void applyWebViewSafeArea() {
+    if (getBridge() == null || getBridge().getWebView() == null) {
+      return;
+    }
+
+    WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+    View webView = getBridge().getWebView();
+    ViewCompat.setOnApplyWindowInsetsListener(webView, (view, windowInsets) -> {
+      Insets safeInsets = windowInsets.getInsets(
+        WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout()
+      );
+      view.setPadding(
+        safeInsets.left,
+        safeInsets.top,
+        safeInsets.right,
+        safeInsets.bottom
+      );
+      return windowInsets;
+    });
+    ViewCompat.requestApplyInsets(webView);
   }
 
   private void applySystemBars(boolean darkTheme) {
