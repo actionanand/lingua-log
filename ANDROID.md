@@ -98,11 +98,16 @@ No additional npm package is required for PIN, fingerprint, or splash support. T
 
 ## Android System Bar Insets
 
-LinguaLog keeps the Android WebView edge-to-edge so the status and navigation bar backgrounds
-match the selected theme. The native shell then applies Android's real system-bar and display-cutout
-insets as WebView padding. This prevents the app header from overlapping notification icons and
-keeps bottom controls above gesture or three-button navigation areas. Browser and PWA layout is not
-changed by this native-only behavior.
+LinguaLog follows the native reference project's system-bar approach:
+
+- Capacitor completes `cap sync` before the native patch is applied.
+- Android performs its normal content fitting instead of LinguaLog forcing edge-to-edge layout.
+- `MainActivity` reapplies status/navigation colors and icon contrast after creation, resume, and
+  window focus changes.
+- The app viewport does not request `viewport-fit=cover`.
+
+Together these keep the WebView below the Android status bar and above the navigation area without
+adding browser-specific spacing or hard-coded status-bar heights.
 
 ## PKCS12 Keystore
 
