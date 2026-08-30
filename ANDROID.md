@@ -20,16 +20,17 @@ This project uses PKCS12 format for Android release signing.
 ## Build Flow
 
 1. Push to `main-android`.
-2. GitHub Actions installs Node, Java, Android SDK, and project dependencies.
+2. GitHub Actions installs Node, Java, Android SDK 36, matching Build Tools, and project dependencies.
 3. `scripts/inject-env.js` injects production secrets.
 4. Angular builds to `dist/lingua-log/browser`.
-5. Capacitor generates the Android project.
-6. `scripts/patch-android-pip.mjs` adds native shell colors, splash resources, biometric support, and required permissions.
-7. Capacitor syncs web assets.
+5. Capacitor generates the Android project and syncs web assets.
+6. CI applies `minSdkVersion`, `compileSdkVersion`, `targetSdkVersion`, `versionCode`, and `versionName` to the generated Gradle files.
+7. `scripts/patch-android-pip.mjs` adds native shell colors, splash resources, biometric support, and required permissions.
 8. Android launcher and splash icons use `public/lingua-log.png`.
 9. Gradle builds release APK and AAB.
 10. If keystore secrets are present, CI signs both files.
-11. Artifacts are uploaded, and release files are committed to `releases/` on `main-android`.
+11. Existing APK/AAB files in `releases/` are removed before the new release files are copied.
+12. Versioned artifacts are uploaded, and release files are committed to `releases/` on `main-android`.
 
 ## GitHub Secrets
 
@@ -47,12 +48,12 @@ If signing secrets are missing, CI still creates unsigned APK/AAB artifacts for 
 
 The workflow prints a clear artifact status message:
 
-- `Signed APK produced`
-- `Unsigned APK produced`
-- `Signed AAB produced`
-- `Unsigned AAB produced`
+- `SIGNED APK created`
+- `UNSIGNED APK created`
+- `SIGNED AAB created`
+- `UNSIGNED AAB created`
 
-For AAB signing, `jarsigner` may print `The signer's certificate is self-signed.` This is expected for a private release keystore. If the log says `jar signed.` and the workflow prints `Signed AAB produced`, the AAB is signed.
+For AAB signing, a self-signed certificate warning is expected for a private release keystore. If the workflow prints `SIGNED AAB created`, the AAB was built with the signing credentials.
 
 ## App Icon
 
@@ -184,7 +185,12 @@ keytool -list -v -keystore release-keystore.jks -storepass 'YOUR_STORE_PASSWORD'
 }
 ```
 
-CI auto-increments `versionCode` on every `main-android` build.
+CI auto-increments `versionCode` on every `main-android` build. `versionName` is used in artifact filenames by replacing dots with dashes.
+
+Example for `versionName` `1.0.9`:
+
+- Signed: `lingua-log-release-1-0-9.apk` and `lingua-log-release-1-0-9.aab`
+- Unsigned: `lingua-log-release-1-0-9-unsigned.apk` and `lingua-log-release-1-0-9-unsigned.aab`
 
 Use these scripts when you want to bump the visible version name too:
 
@@ -204,8 +210,9 @@ git push origin main-android
 
 Outputs:
 
-- `releases/lingua-log-release.apk`
-- `releases/lingua-log-release.aab`
+- `releases/lingua-log-release-x-y-z.apk`
+- `releases/lingua-log-release-x-y-z.aab`
+- `releases/lingua-log-release-x-y-z-unsigned.apk` and `.aab` when signing secrets are missing or signing fails
 - Actions artifacts retained for 30 days
 
 To create a GitHub Release:
@@ -243,7 +250,8 @@ The workflow currently uses:
 
 ```yaml
 MIN_SDK_VERSION: 24
-TARGET_SDK_VERSION: 35
+COMPILE_SDK_VERSION: 36
+TARGET_SDK_VERSION: 36
 ```
 
-Update `TARGET_SDK_VERSION` when Google Play requires a newer target SDK.
+Update `COMPILE_SDK_VERSION` and `TARGET_SDK_VERSION` together when Google Play requires a newer target SDK.
